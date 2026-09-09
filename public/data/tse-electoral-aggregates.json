@@ -1,0 +1,286 @@
+{
+  "metadata": {
+    "source": "Tribunal Supremo de Elecciones de Costa Rica",
+    "dataset": "Padrón Nacional Electoral",
+    "sourceFile": "SJCENTRAL.zip",
+    "processedAt": "2026-09-09T19:09:58.893Z",
+    "recordsProcessed": 238693,
+    "aggregationLevel": "territorial",
+    "containsPersonalData": false
+  },
+  "territories": [
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "PASO ANCHO SUR",
+      "registeredVoters": 9567,
+      "cantonPercentage": 4.01
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "SAN FRANCISCO DE DOS RIOS",
+      "registeredVoters": 10657,
+      "cantonPercentage": 4.46
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "ZAPOTE",
+      "registeredVoters": 12826,
+      "cantonPercentage": 5.37
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "PAVAS",
+      "registeredVoters": 13978,
+      "cantonPercentage": 5.86
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "GONZALEZ VIQUEZ",
+      "registeredVoters": 6485,
+      "cantonPercentage": 2.72
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "HATILLO",
+      "registeredVoters": 15985,
+      "cantonPercentage": 6.7
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "BARRIO MEXICO",
+      "registeredVoters": 8458,
+      "cantonPercentage": 3.54
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "VILLA ESPERANZA",
+      "registeredVoters": 10263,
+      "cantonPercentage": 4.3
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "CORDOBA",
+      "registeredVoters": 5416,
+      "cantonPercentage": 2.27
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "SAGRADA FAMILIA",
+      "registeredVoters": 5169,
+      "cantonPercentage": 2.17
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "CRISTO REY",
+      "registeredVoters": 4448,
+      "cantonPercentage": 1.86
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "CARMEN",
+      "registeredVoters": 1259,
+      "cantonPercentage": 0.53
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "MARIA REINA",
+      "registeredVoters": 6588,
+      "cantonPercentage": 2.76
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "SANTA MARTA",
+      "registeredVoters": 7189,
+      "cantonPercentage": 3.01
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "URUCA",
+      "registeredVoters": 2895,
+      "cantonPercentage": 1.21
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "COLONIA 15 DE SETIEMBRE",
+      "registeredVoters": 6868,
+      "cantonPercentage": 2.88
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "CORAZON DE JESUS",
+      "registeredVoters": 947,
+      "cantonPercentage": 0.4
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "BARRIO LUJAN",
+      "registeredVoters": 5032,
+      "cantonPercentage": 2.11
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "PITAHAYA",
+      "registeredVoters": 1688,
+      "cantonPercentage": 0.71
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "COLONIA KENNEDY",
+      "registeredVoters": 3865,
+      "cantonPercentage": 1.62
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "MATA REDONDA",
+      "registeredVoters": 3737,
+      "cantonPercentage": 1.57
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "PERPETUO SOCORRO",
+      "registeredVoters": 4314,
+      "cantonPercentage": 1.81
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "PASO ANCHO NORTE",
+      "registeredVoters": 6660,
+      "cantonPercentage": 2.79
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "OMAR DENGO",
+      "registeredVoters": 8788,
+      "cantonPercentage": 3.68
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "LA CAJA",
+      "registeredVoters": 3144,
+      "cantonPercentage": 1.32
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "ARANJUEZ",
+      "registeredVoters": 3694,
+      "cantonPercentage": 1.55
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "HATILLO 8",
+      "registeredVoters": 15425,
+      "cantonPercentage": 6.46
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "SAN SEBASTIAN",
+      "registeredVoters": 10382,
+      "cantonPercentage": 4.35
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "HOSPITAL",
+      "registeredVoters": 1622,
+      "cantonPercentage": 0.68
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "LA PEREGRINA",
+      "registeredVoters": 3325,
+      "cantonPercentage": 1.39
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "HLE. SAN PEDRO CLAVER",
+      "registeredVoters": 52,
+      "cantonPercentage": 0.02
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "SAN BOSCO",
+      "registeredVoters": 2665,
+      "cantonPercentage": 1.12
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "LA CARPIO",
+      "registeredVoters": 7934,
+      "cantonPercentage": 3.32
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "RINCON GRANDE",
+      "registeredVoters": 22466,
+      "cantonPercentage": 9.41
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "NACIONES UNIDAS",
+      "registeredVoters": 1806,
+      "cantonPercentage": 0.76
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "CATEDRAL",
+      "registeredVoters": 1452,
+      "cantonPercentage": 0.61
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "ROSITER CARBALLO (LAS BRISAS)",
+      "registeredVoters": 1215,
+      "cantonPercentage": 0.51
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "C.S.M CAPEMCOL",
+      "registeredVoters": 87,
+      "cantonPercentage": 0.04
+    },
+    {
+      "province": "SAN JOSE",
+      "canton": "CENTRAL",
+      "district": "CAI. SAN JOSE",
+      "registeredVoters": 342,
+      "cantonPercentage": 0.14
+    }
+  ]
+}

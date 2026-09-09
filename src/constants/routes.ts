@@ -3,7 +3,7 @@ export interface AppRoute {
   name: string;
   shortName: string;
   description: string;
-  moduleKey: 'procurement' | 'security' | 'publicData' | 'places';
+  moduleKey: 'procurement' | 'security' | 'publicData' | 'electoral';
   futureSource: string;
 }
 
@@ -12,7 +12,7 @@ export const APP_ROUTES = {
   PROCUREMENT: '/contratacion-publica',
   SECURITY: '/seguridad',
   PUBLIC_DATA: '/datos-publicos',
-  PLACES: '/servicios-y-lugares',
+  ELECTORAL: '/padron-electoral',
 } as const;
 
 export const MODULE_NAV_ITEMS: AppRoute[] = [
@@ -41,11 +41,11 @@ export const MODULE_NAV_ITEMS: AppRoute[] = [
     futureSource: 'Portal Nacional de Datos Abiertos',
   },
   {
-    path: APP_ROUTES.PLACES,
-    name: 'Servicios y Lugares',
-    shortName: 'Servicios',
-    description: 'Infraestructura comunitaria, servicios esenciales y equipamiento territorial.',
-    moduleKey: 'places',
-    futureSource: 'OpenStreetMap / Overpass API',
+    path: APP_ROUTES.ELECTORAL,
+    name: 'Padrón Electoral',
+    shortName: 'Electoral',
+    description: 'Estadísticas agregadas del padrón por territorio.',
+    moduleKey: 'electoral',
+    futureSource: 'Tribunal Supremo de Elecciones (TSE)',
   },
 ];
