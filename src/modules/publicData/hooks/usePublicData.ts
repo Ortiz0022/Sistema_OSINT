@@ -1,52 +1,121 @@
-import { useState, useCallback } from 'react';
-import type { PublicDataFilterState, PublicDataRecord, PublicDatasetConfig } from '../types/publicData.types';
-import { publicDataService } from '../services/publicDataService';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from '../../../hooks/useLocation';
+import { publicDataService, PublicDataSourceError } from '../services/publicDataService';
+import { analyzePublicData } from '../services/publicDataAnalytics';
+import type { PublicDataAnalysis, PublicDataFilterState, PublicDataset } from '../types/publicData.types';
 
-export const usePublicData = () => {
-  const { selectedProvinceId, selectedCantonId, selectedDistrictId } = useLocation();
+const INITIAL_FILTERS: PublicDataFilterState = {
+  searchQuery: '',
+  sizeFilter: 'todas',
+  sortBy: 'nombre',
+};
 
-  const [activeDataset] = useState<PublicDatasetConfig>({
-    datasetId: 'dataset-institucional-cr',
-    title: 'Dataset Oficial en Definición',
-    publisher: 'Portal Nacional de Datos Abiertos (MICITT)',
-    format: 'JSON',
-    isLoaded: false,
-  });
+export interface UsePublicDataReturn {
+  dataset: PublicDataset | null;
+  analysis: PublicDataAnalysis | null;
+  filters: PublicDataFilterState;
+  updateFilters: (next: Partial<PublicDataFilterState>) => void;
+  isLoading: boolean;
+  error: string | null;
+  errorHint: string | null;
+  reload: () => void;
+}
 
-  const [filters, setFilters] = useState<PublicDataFilterState>({
-    category: 'institucional',
-    searchQuery: '',
-  });
+/**
+ * Orquesta el módulo de Datos Públicos: descarga el dataset de Pymes del MEIC
+ * una sola vez, reacciona al selector territorial global y recalcula el
+ * análisis cuando cambia el territorio o los filtros locales.
+ */
+export const usePublicData = (): UsePublicDataReturn => {
+  const {
+    selectedProvinceId,
+    selectedCantonId,
+    selectedDistrictId,
+    provinceName,
+    cantonName,
+    districtName,
+  } = useLocation();
 
-  const [records] = useState<PublicDataRecord[]>([]);
-  const [isLoading] = useState<boolean>(false);
-  const [error] = useState<string | null>(null);
+  const [dataset, setDataset] = useState<PublicDataset | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [errorHint, setErrorHint] = useState<string | null>(null);
+  const [filters, setFilters] = useState<PublicDataFilterState>(INITIAL_FILTERS);
+  const [reloadToken, setReloadToken] = useState<number>(0);
 
-  const updateFilters = useCallback((newFilters: Partial<PublicDataFilterState>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+  useEffect(() => {
+    // Bandera local de esta ejecución del efecto: con `StrictMode` el efecto
+    // corre dos veces y un ref compartido haría que la segunda ejecución
+    // tomara por válido el resultado ya descartado de la primera.
+    let active = true;
+
+    publicDataService
+      .getDataset({ force: reloadToken > 0 })
+      .then((result) => {
+        if (!active) return;
+        setDataset(result);
+      })
+      .catch((caught: unknown) => {
+        if (!active) return;
+        if (caught instanceof PublicDataSourceError) {
+          setError(caught.message);
+          setErrorHint(
+            caught.reason === 'no_publicado'
+              ? 'Para generarlo, corré en la terminal: node src/modules/publicData/etl/fetchMeicPymes.mjs'
+              : null
+          );
+        } else {
+          setError('Ocurrió un error inesperado al leer los datos de Pymes del MEIC.');
+          setErrorHint(null);
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [reloadToken]);
+
+  const updateFilters = useCallback((next: Partial<PublicDataFilterState>) => {
+    setFilters((previous) => ({ ...previous, ...next }));
   }, []);
 
-  const loadDataset = useCallback(async () => {
-    await publicDataService.fetchDatasetRecords(
-      {
-        provinceId: selectedProvinceId ?? undefined,
-        cantonId: selectedCantonId ?? undefined,
-        districtId: selectedDistrictId ?? undefined,
-      },
-      activeDataset.datasetId
-    );
-  }, [selectedProvinceId, selectedCantonId, selectedDistrictId, activeDataset.datasetId]);
+  const reload = useCallback(() => {
+    publicDataService.clearCache();
+    setIsLoading(true);
+    setError(null);
+    setErrorHint(null);
+    setReloadToken((token) => token + 1);
+  }, []);
 
-  return {
-    activeDataset,
+  const analysis = useMemo<PublicDataAnalysis | null>(() => {
+    if (!dataset) return null;
+    return analyzePublicData(
+      dataset,
+      {
+        provinciaId: selectedProvinceId,
+        cantonId: selectedCantonId,
+        distritoId: selectedDistrictId,
+        provinciaNombre: provinceName,
+        cantonNombre: cantonName,
+        distritoNombre: districtName,
+      },
+      filters
+    );
+  }, [
+    dataset,
+    selectedProvinceId,
+    selectedCantonId,
+    selectedDistrictId,
+    provinceName,
+    cantonName,
+    districtName,
     filters,
-    updateFilters,
-    records,
-    isLoading,
-    error,
-    loadDataset,
-  };
+  ]);
+
+  return { dataset, analysis, filters, updateFilters, isLoading, error, errorHint, reload };
 };
 
 export default usePublicData;

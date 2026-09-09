@@ -35,10 +35,13 @@ export const DATA_SOURCES: Record<string, SourceMetadata> = {
   datosAbiertos: {
     id: 'datos-abiertos-cr',
     name: 'Portal Nacional de Datos Abiertos de Costa Rica',
-    officialEntity: 'Ministerio de Ciencia, Innovación, Tecnología y Telecomunicaciones (MICITT)',
-    status: 'en_preparacion',
-    officialUrl: 'https://datosabiertos.go.cr/',
-    description: 'Catálogo oficial de datos de instituciones públicas costarricenses.',
+    officialEntity: 'Gobierno de Costa Rica (CKAN)',
+    status: 'activo',
+    // El dominio "datosabiertos.go.cr" (sin "gob") citado en enunciados
+    // anteriores está fuera de servicio; el portal vigente es este.
+    officialUrl: 'https://datosabiertos.gob.go.cr/',
+    description:
+      'Catálogo oficial de datos abiertos de instituciones públicas costarricenses, sobre CKAN. El módulo de Datos Públicos consume en vivo el padrón de Pymes activas que publica el MEIC.',
   },
   osm: {
     id: 'osm-overpass',

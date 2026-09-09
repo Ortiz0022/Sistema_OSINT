@@ -1,125 +1,315 @@
 import React from 'react';
-import { Database, FileText } from 'lucide-react';
+import { AlertTriangle, Briefcase, Database, HelpCircle, Layers, PieChart, Search } from 'lucide-react';
 import { SectionContainer } from '../../../components/common/SectionContainer';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { Card } from '../../../components/common/Card';
 import { Badge } from '../../../components/common/Badge';
-import { EmptyState } from '../../../components/common/EmptyState';
+import { LoadingState } from '../../../components/common/LoadingState';
+import { ErrorState } from '../../../components/common/ErrorState';
 import { SourceInfo } from '../../../components/common/SourceInfo';
-import { DATA_SOURCES } from '../../../constants/sources';
+import { GLOSSARY, MEIC_PYMES_SOURCE, SIZE_FILTER_LABELS } from '../constants/meicSource';
 import { usePublicData } from '../hooks/usePublicData';
+import { formatInteger } from '../services/publicDataAnalytics';
+import { PublicDataRanking } from './PublicDataRanking';
+import { PublicDataSizeChart } from './PublicDataSizeChart';
+import { PublicDataTable } from './PublicDataTable';
+import type { PublicDataSizeFilter } from '../types/publicData.types';
 import './PublicDataView.css';
 
+const SIZE_FILTERS: PublicDataSizeFilter[] = ['todas', 'Micro', 'Pequeña', 'Mediana'];
+
+/** Advertencias del dataset que sí vale la pena mostrar en pantalla, resumidas a lo esencial. */
+const KEY_WARNING_HINTS = ['fotografía del padrón', 'nombre de distrito que no coincide', 'clasifica el MEIC'];
+
 export const PublicDataView: React.FC = () => {
-  const { activeDataset, filters, updateFilters } = usePublicData();
+  const { dataset, analysis, filters, updateFilters, isLoading, error, errorHint, reload } = usePublicData();
+
+  const highlightedWarnings = dataset
+    ? dataset.meta.advertencias.filter((warning) => KEY_WARNING_HINTS.some((hint) => warning.includes(hint)))
+    : [];
 
   return (
     <SectionContainer>
       <PageHeader
         title="Datos Públicos y Transparencia"
-        description="Integración de conjuntos de datos gubernamentales abiertos para la rendición de cuentas y análisis cívico."
-        badgeText="Módulo en Preparación"
-        badgeVariant="warning"
+        description="Empresas Pyme activas del MEIC, por provincia, cantón y distrito."
+        badgeText={dataset ? 'Datos cargados' : 'Cargando datos'}
+        badgeVariant={dataset ? 'success' : 'warning'}
       />
 
-      {/* Tarjeta de Especificación del Dataset en preparación */}
-      <Card
-        className="dataset-target-card"
-        header={
-          <div className="dataset-target-header">
-            <div className="dataset-target-title-wrap">
-              <Database className="dataset-target-icon" />
-              <div>
-                <h3 className="dataset-target-title">Integración de Dataset del Portal Nacional</h3>
-                <span className="dataset-target-sub">Fuente: datosabiertos.go.cr</span>
-              </div>
-            </div>
-            <Badge variant="warning">Preparado para Conexión</Badge>
-          </div>
-        }
-      >
-        <div className="dataset-target-content">
-          <p className="dataset-target-description">
-            Este módulo se encuentra estructurado para recibir e interpretar un conjunto de datos público específico (por ejemplo: presupuesto institucional, nóminas públicas o indicadores sectoriales).
-          </p>
-
-          <div className="dataset-meta-grid">
-            <div className="dataset-meta-item">
-              <span className="dataset-meta-label">Estado de la Conexión</span>
-              <span className="dataset-meta-val">
-                <span className="status-dot status-dot--pending" />
-                Módulo en preparación
-              </span>
-            </div>
-            <div className="dataset-meta-item">
-              <span className="dataset-meta-label">Formato Esperado</span>
-              <span className="dataset-meta-val">{activeDataset.format} / API CKAN</span>
-            </div>
-            <div className="dataset-meta-item">
-              <span className="dataset-meta-label">Criterio de Vinculación</span>
-              <span className="dataset-meta-val">Código Territorial (DTA)</span>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Área preparada para Filtros de Dataset */}
-      <Card className="publicdata-filters" padding="sm">
-        <div className="filter-bar">
-          <div className="filter-field">
-            <label htmlFor="publicdata-cat">Categoría temática:</label>
-            <select
-              id="publicdata-cat"
-              value={filters.category}
-              onChange={(e) => updateFilters({ category: e.target.value })}
-              className="filter-select"
-            >
-              <option value="institucional">Institucional y Gobierno</option>
-              <option value="finanzas">Finanzas y Presupuesto</option>
-              <option value="ambiente">Ambiente y Recursos Naturales</option>
-            </select>
-          </div>
-
-          <div className="filter-field">
-            <label htmlFor="publicdata-search">Filtro interno:</label>
-            <input
-              id="publicdata-search"
-              type="text"
-              placeholder="Filtrar atributos del dataset..."
-              value={filters.searchQuery}
-              onChange={(e) => updateFilters({ searchQuery: e.target.value })}
-              className="filter-search__input filter-search__input--inline"
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Espacio para Visualización y Tabla de Datos */}
-      <div className="publicdata-viewer-area">
-        <Card
-          header={
-            <div className="area-header">
-              <h3 className="area-title">Previsualización de Registros del Dataset</h3>
-              <span className="area-tag">Tabla y Estructura</span>
-            </div>
-          }
-        >
-          <EmptyState
-            title="Sin datos disponibles todavía"
-            message="Una vez asignado el identificador del recurso desde datosabiertos.go.cr, las filas y columnas se tabularán de forma automática con soporte de ordenamiento y filtrado."
-            icon={<FileText />}
+      {isLoading && !dataset && (
+        <Card>
+          <LoadingState
+            message="Cargando el padrón de Pymes..."
+            description="Estamos leyendo el archivo de datos que se armó con la información oficial del MEIC."
           />
         </Card>
-      </div>
+      )}
 
-      {/* Información de la fuente oficial */}
-      <SourceInfo
-        sourceName={DATA_SOURCES.datosAbiertos.name}
-        entityName={DATA_SOURCES.datosAbiertos.officialEntity}
-        status={DATA_SOURCES.datosAbiertos.status}
-        officialUrl={DATA_SOURCES.datosAbiertos.officialUrl}
-        notes="Catálogo unificado del Gobierno de la República de Costa Rica según la Estrategia Nacional de Datos Abiertos."
-      />
+      {error && !dataset && (
+        <Card>
+          <ErrorState
+            title="No se pudieron cargar los datos de Pymes"
+            message={errorHint ? `${error} ${errorHint}` : error}
+            onRetry={reload}
+            retryLabel="Intentar de nuevo"
+          />
+        </Card>
+      )}
+
+      {dataset && analysis && (
+        <>
+          {/* Explicación de entrada, recortada a lo esencial */}
+          <div className="intro">
+            <HelpCircle className="intro__icon" />
+            <div>
+              <p className="intro__title">¿Qué estoy viendo?</p>
+              <p className="intro__text">
+                El MEIC publica cada mes las Pymes con condición activa; acá están cruzadas con tu
+                territorio. Usá el selector de arriba para cambiar de provincia o cantón —{' '}
+                <strong>todo en la página se actualiza solo</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* Territorio */}
+          <div className="scope-bar">
+            <Badge variant="primary">{analysis.scope.label}</Badge>
+            <span className="scope-bar__hint">Padrón de {dataset.meta.periodoDatos}</span>
+          </div>
+
+          {analysis.scope.degradedNotice && (
+            <div className="notice notice--warning" role="status">
+              <AlertTriangle className="notice__icon" />
+              <span>{analysis.scope.degradedNotice}</span>
+            </div>
+          )}
+
+          {/* Panel principal: la dona es la pieza central, con los KPIs al lado */}
+          <div className="module-main-area">
+            <Card
+              header={
+                <div className="area-header">
+                  <h3 className="area-title">Empresas por tamaño</h3>
+                  <span className="area-tag">
+                    <PieChart className="area-tag__icon" /> {analysis.scope.label}
+                  </span>
+                </div>
+              }
+            >
+              <div className="hero-panel">
+                <PublicDataSizeChart breakdown={analysis.tamanoBreakdown} />
+                <div className="hero-stats">
+                  {analysis.indicators.map((indicator) => (
+                    <div key={indicator.key} className="hero-stats__row">
+                      <span className="metric__label">{indicator.label}</span>
+                      <span className="metric__value">{indicator.value}</span>
+                      <span className="metric__helper">{indicator.helper}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Ranking territorial (columna ancha) y sectores (columna angosta) */}
+          <div className="module-columns module-columns--asym">
+            <Card
+              header={
+                <div className="area-header">
+                  <h3 className="area-title">{analysis.rankingTitle}</h3>
+                  <span className="area-tag">
+                    <Layers className="area-tag__icon" /> Cantidad de empresas
+                  </span>
+                </div>
+              }
+            >
+              <PublicDataRanking items={analysis.ranking} />
+            </Card>
+
+            <Card
+              header={
+                <div className="area-header">
+                  <h3 className="area-title">Sectores (CIIU)</h3>
+                  <span className="area-tag">
+                    <Briefcase className="area-tag__icon" />
+                  </span>
+                </div>
+              }
+            >
+              {analysis.sectores.length === 0 ? (
+                <p className="chart-empty">Sin empresas en este territorio.</p>
+              ) : (
+                <ul className="types" role="list">
+                  {analysis.sectores.slice(0, 6).map((sector) => (
+                    <li key={sector.codigo || sector.descripcion} className="types__row">
+                      <div className="types__head">
+                        <span className="types__label">{sector.descripcion}</span>
+                        <span className="types__value">{formatInteger(sector.total)}</span>
+                      </div>
+                      <div className="types__track">
+                        <div className="types__bar" style={{ width: `${Math.max(sector.share, 1)}%` }} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
+
+          {/* Tabla, con sus controles justo al lado (afectan solo esta lista) */}
+          <div className="module-main-area">
+            <Card
+              header={
+                <div className="area-header">
+                  <h3 className="area-title">Empresas del territorio seleccionado</h3>
+                  <span className="area-tag">{formatInteger(analysis.table.length)} en la lista</span>
+                </div>
+              }
+            >
+              <div className="filter-bar">
+                <div className="filter-control filter-control--size">
+                  <span className="filter-control__label" id="publicdata-size-label">
+                    Tamaño:
+                  </span>
+                  <div className="lens-switch__group" role="group" aria-labelledby="publicdata-size-label">
+                    {SIZE_FILTERS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`lens-switch__btn${filters.sizeFilter === option ? ' lens-switch__btn--active' : ''}`}
+                        aria-pressed={filters.sizeFilter === option}
+                        onClick={() => updateFilters({ sizeFilter: option })}
+                      >
+                        {SIZE_FILTER_LABELS[option]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-control filter-control--search">
+                  <label className="filter-control__label" htmlFor="publicdata-search">
+                    Buscar:
+                  </label>
+                  <div className="filter-search">
+                    <Search className="filter-search__icon" />
+                    <input
+                      id="publicdata-search"
+                      type="text"
+                      placeholder="Nombre o identificación..."
+                      value={filters.searchQuery}
+                      onChange={(event) => updateFilters({ searchQuery: event.target.value })}
+                      className="filter-search__input"
+                    />
+                  </div>
+                </div>
+
+                <div className="filter-control filter-control--sort">
+                  <label className="filter-control__label" htmlFor="publicdata-sort">
+                    Ordenar por:
+                  </label>
+                  <select
+                    id="publicdata-sort"
+                    className="filter-select"
+                    value={filters.sortBy}
+                    onChange={(event) => updateFilters({ sortBy: event.target.value as 'nombre' | 'tamano' })}
+                  >
+                    <option value="nombre">Nombre (A-Z)</option>
+                    <option value="tamano">Tamaño (Mediana primero)</option>
+                  </select>
+                </div>
+              </div>
+
+              <PublicDataTable rows={analysis.table} />
+            </Card>
+          </div>
+
+          {/* Procedencia + glosario, combinados en una sola tarjeta */}
+          <div className="module-main-area">
+            <Card
+              header={
+                <div className="area-header">
+                  <h3 className="area-title">¿De dónde salen estos datos?</h3>
+                  <span className="area-tag">
+                    <Database className="area-tag__icon" /> Fuente y fecha
+                  </span>
+                </div>
+              }
+            >
+              <dl className="provenance">
+                <div>
+                  <dt>Quién publica el dato</dt>
+                  <dd>
+                    {dataset.meta.entidad}.{' '}
+                    <a href={MEIC_PYMES_SOURCE.datasetPageUrl} target="_blank" rel="noopener noreferrer">
+                      Ficha del dataset
+                    </a>{' '}
+                    ·{' '}
+                    <a href={dataset.meta.portalOficial} target="_blank" rel="noopener noreferrer">
+                      Portal oficial
+                    </a>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Formato y licencia</dt>
+                  <dd>
+                    {dataset.meta.formato} · {dataset.meta.licencia}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Período de los datos</dt>
+                  <dd>
+                    {dataset.meta.periodoDatos}. El MEIC lo subió al portal hasta el{' '}
+                    {new Date(dataset.meta.publicadoEnPortal).toLocaleDateString('es-CR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                    .
+                  </dd>
+                </div>
+                <div>
+                  <dt>Fecha en que se consultó</dt>
+                  <dd>{new Date(dataset.meta.generadoEn).toLocaleString('es-CR')}</dd>
+                </div>
+                <div>
+                  <dt>Cuánto se procesó</dt>
+                  <dd>{formatInteger(dataset.meta.conteos.empresasUsadas)} empresas activas</dd>
+                </div>
+              </dl>
+
+              {highlightedWarnings.length > 0 && (
+                <>
+                  <p className="provenance__intro">Antes de leer los números:</p>
+                  <ul className="provenance__warnings">
+                    {highlightedWarnings.map((advertencia) => (
+                      <li key={advertencia}>{advertencia}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              <p className="provenance__intro">Glosario</p>
+              <ul className="glossary-inline">
+                {GLOSSARY.map((entry) => (
+                  <li key={entry.term}>
+                    <strong>{entry.term}:</strong> {entry.definition}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+
+          <SourceInfo
+            sourceName={MEIC_PYMES_SOURCE.name}
+            entityName={`${dataset.meta.entidad} · Portal Nacional de Datos Abiertos de Costa Rica`}
+            status="activo"
+            officialUrl={MEIC_PYMES_SOURCE.officialUrl}
+            queryDate={new Date(dataset.meta.generadoEn).toLocaleDateString('es-CR')}
+            notes="Padrón de empresas Pyme activas, publicado por el MEIC y ubicado por provincia, cantón y distrito con la división territorial oficial de Costa Rica."
+          />
+        </>
+      )}
     </SectionContainer>
   );
 };
