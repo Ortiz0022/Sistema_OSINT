@@ -19,7 +19,8 @@
 
 import { fetchJsonWithRetry } from './http.mjs';
 
-const DTA_BASE_URL = 'https://ubicaciones.paginasweb.cr';
+/** API pública de la División Territorial. Sin credenciales; configurable por si cambia de host. */
+const DTA_BASE_URL = process.env.DTA_BASE_URL || 'https://ubicaciones.paginasweb.cr';
 
 /** Normaliza un topónimo: minúsculas, sin tildes, sin puntuación ni dobles espacios. */
 export function normalizePlace(value) {

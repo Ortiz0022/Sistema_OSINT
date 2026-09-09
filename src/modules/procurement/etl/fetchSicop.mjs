@@ -17,7 +17,11 @@
  *   node src/modules/procurement/etl/fetchSicop.mjs --meses=36
  *   node src/modules/procurement/etl/fetchSicop.mjs --desde=202401 --hasta=202412
  *
- * No requiere llaves ni credenciales: toda la información consumida es pública.
+ * No requiere llaves ni credenciales: toda la información consumida es pública,
+ * así que no hay ningún secreto que llevar a un archivo `.env`. Las URL base sí
+ * son configuración y se pueden sobrescribir con variables de entorno, pero
+ * traen el valor público oficial por defecto para que el ETL corra sin ningún
+ * paso previo (ver "Variables de entorno" en el README del módulo).
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -27,7 +31,14 @@ import { parseSemicolonCsv, parseAmount, toYearMonth } from './csv.mjs';
 import { loadTerritoryIndex, resolveZone } from './territory.mjs';
 import { fetchWithRetry } from './http.mjs';
 
+/**
+ * Contenedor público del Observatorio de Compra Pública. No es un secreto: se
+ * documenta en el README y se muestra en la propia interfaz. La variable de
+ * entorno existe solo para poder apuntar a otro espejo si Hacienda cambia el
+ * host, sin tener que editar el código.
+ */
 const CONTAINER =
+  process.env.SICOP_CONTAINER_URL ||
   'https://dlsaobservatorioprod.blob.core.windows.net/fs-synapse-observatorio-produccion';
 const ZIP_PREFIX = CONTAINER + '/Zip';
 const PORTAL_DESCARGAS = 'https://www.observatoriocomprapublica.go.cr/descargas-sicop/';
@@ -44,7 +55,14 @@ const moduleDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(moduleDir, '../../../..');
 
 function parseArgs(argv) {
-  const args = { meses: 24, desde: null, hasta: null, salida: 'public/sicop/sicop-territorial.json' };
+  // Los argumentos de la línea de comandos mandan sobre las variables de
+  // entorno, y estas sobre los valores por defecto.
+  const args = {
+    meses: Number(process.env.SICOP_MESES) || 24,
+    desde: process.env.SICOP_DESDE || null,
+    hasta: process.env.SICOP_HASTA || null,
+    salida: 'public/sicop/sicop-territorial.json',
+  };
   for (const raw of argv.slice(2)) {
     const [key, value] = raw.replace(/^--/, '').split('=');
     if (key === 'meses') args.meses = Math.max(1, Number(value) || 24);
@@ -94,6 +112,7 @@ async function main() {
   const args = parseArgs(process.argv);
   const startedAt = Date.now();
 
+  if (process.env.SICOP_CONTAINER_URL) log('  (contenedor tomado de SICOP_CONTAINER_URL)');
   log('> Consultando periodos publicados por el Observatorio de Compra Publica...');
   const available = await listAvailablePeriods();
   const periods = pickPeriods(available, args);

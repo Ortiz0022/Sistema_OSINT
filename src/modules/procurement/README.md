@@ -200,8 +200,46 @@ node src/modules/procurement/etl/fetchSicop.mjs --desde=202401 --hasta=202412
 node src/modules/procurement/etl/verifyDataset.mjs
 ```
 
-Necesita Node 18 o superior. **No usa variables de entorno, llaves ni
-contraseñas**, porque la fuente es completamente pública.
+Necesita Node 18 o superior.
+
+### Variables de entorno
+
+**Este módulo no tiene ningún secreto.** SICOP y el Observatorio de Compra
+Pública publican los archivos de forma abierta: no hay token, ni usuario, ni
+contraseña, ni llave de API. Por eso la URL de la fuente **no va en un `.env`**:
+
+- No es un secreto, y esconderla no protegería nada.
+- El enunciado exige lo contrario: *"Debe indicarse claramente de dónde provienen
+  los datos"* y *"Lista de fuentes OSINT utilizadas y enlace oficial de cada
+  una"*. La URL se muestra en la interfaz, en este README y dentro del propio
+  archivo de datos.
+- Metida en un `.env` (que está en `.gitignore`), el proyecto dejaría de
+  funcionar al clonarlo sin un paso de configuración extra e innecesario.
+
+El requisito del enunciado sobre variables de entorno apunta a fuentes que sí
+piden credenciales, como el **web service del BCCR**, que exige un token de
+suscripción.
+
+Dicho eso, las URL base sí son *configuración* (podrían cambiar de host), así que
+se pueden sobrescribir sin editar código. Todas son **opcionales** y traen el
+valor público oficial por defecto:
+
+| Variable | Para qué sirve | Valor por defecto |
+|---|---|---|
+| `SICOP_CONTAINER_URL` | Contenedor de los ZIP mensuales, por si Hacienda cambia de host o se usa un espejo | El contenedor público del Observatorio |
+| `DTA_BASE_URL` | API de la División Territorial usada para ubicar cada compra | `https://ubicaciones.paginasweb.cr` |
+| `SICOP_MESES` | Cuántos meses descargar | `24` |
+| `SICOP_DESDE` / `SICOP_HASTA` | Rango exacto en formato `AAAAMM` | sin definir |
+
+Los argumentos de la línea de comandos (`--meses`, `--desde`, `--hasta`) tienen
+prioridad sobre las variables de entorno. Para usar un archivo `.env`:
+
+```bash
+node --env-file=.env src/modules/procurement/etl/fetchSicop.mjs
+```
+
+La aplicación web no usa ninguna variable de entorno: lee su archivo de datos
+desde la ruta pública del sitio.
 
 Bajar 24 meses tarda unos 2 minutos y va mostrando el avance mes a mes.
 
