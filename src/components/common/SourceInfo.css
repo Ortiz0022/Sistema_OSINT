@@ -1,0 +1,123 @@
+.source-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+  background-color: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: 1.5rem;
+  font-size: 0.8125rem;
+  flex-wrap: wrap;
+}
+
+.source-info__left {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.source-info__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cr-blue-600);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .source-info__icon {
+  color: var(--cr-blue-500);
+}
+
+.source-info__svg {
+  width: 18px;
+  height: 18px;
+}
+
+.source-info__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.source-info__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.source-info__source {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.source-info__entity {
+  color: var(--text-secondary);
+}
+
+.source-info__notes {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+.source-info__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.source-info__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+}
+
+.source-info__meta-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.source-info__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--cr-blue-600);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.source-info__link:hover {
+  border-color: var(--cr-blue-500);
+  color: var(--cr-blue-700);
+  background-color: var(--bg-surface-hover);
+}
+
+[data-theme="dark"] .source-info__link {
+  color: var(--cr-blue-500);
+}
+
+[data-theme="dark"] .source-info__link:hover {
+  color: var(--cr-blue-400);
+}
+
+.source-info__link-icon {
+  width: 13px;
+  height: 13px;
+}

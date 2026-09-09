@@ -1,0 +1,150 @@
+.module-filter-card {
+  margin-bottom: 1.5rem;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-search {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.filter-search__icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.filter-search__input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-alt);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.filter-search__input:focus {
+  border-color: var(--cr-blue-600);
+  background-color: var(--bg-surface);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-field label {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 0.45rem 1.8rem 0.45rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface-alt);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  border-color: var(--cr-blue-600);
+}
+
+/* Grids de métricas */
+.module-grid-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.metric-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.metric-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--cr-blue-600);
+}
+
+.metric-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 0;
+}
+
+.metric-placeholder__badge {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.metric-placeholder__sub {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* Área principal */
+.module-main-area {
+  margin-bottom: 1.5rem;
+}
+
+.area-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.area-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.area-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-surface-alt);
+  color: var(--text-muted);
+}

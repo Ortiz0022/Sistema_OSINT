@@ -1,0 +1,233 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.navbar {
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+}
+
+.navbar__container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* Marca / Logotipo */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.brand-logo {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--cr-blue-900), var(--cr-blue-700));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  overflow: hidden;
+}
+
+.brand-logo__flag-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  display: flex;
+}
+
+.flag-dot {
+  flex: 1;
+  height: 100%;
+}
+
+.flag-dot--blue { background-color: #002b7f; }
+.flag-dot--white { background-color: #ffffff; }
+.flag-dot--red { background-color: #ce1126; }
+
+.brand-logo__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-text__title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.brand-text__subtitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cr-blue-600);
+}
+
+[data-theme="dark"] .brand-text__subtitle {
+  color: var(--cr-blue-500);
+}
+
+/* Navegación Desktop */
+.navbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-surface-alt);
+}
+
+.nav-item--active {
+  color: var(--cr-blue-700);
+  background-color: var(--cr-blue-50);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .nav-item--active {
+  color: var(--cr-blue-500);
+  background-color: var(--cr-blue-100);
+}
+
+.nav-item__icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Acciones */
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar__mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  background-color: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+}
+
+.navbar__mobile-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Sub-barra Territorial */
+.territorial-bar {
+  background-color: var(--bg-surface-alt);
+  padding: 0.45rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.territorial-bar__container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Menú móvil */
+.mobile-menu {
+  background-color: var(--bg-surface);
+  border-bottom: 2px solid var(--border-subtle);
+  padding: 1rem 1.5rem;
+}
+
+.mobile-menu__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background-color: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+}
+
+.mobile-nav-item--active {
+  border-color: var(--cr-blue-500);
+  background-color: var(--cr-blue-50);
+  color: var(--cr-blue-700);
+}
+
+[data-theme="dark"] .mobile-nav-item--active {
+  background-color: var(--cr-blue-100);
+  color: var(--cr-blue-500);
+}
+
+.mobile-nav-item__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-item__title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.mobile-nav-item__source {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 960px) {
+  .navbar__nav {
+    display: none;
+  }
+
+  .navbar__mobile-toggle {
+    display: flex;
+  }
+}

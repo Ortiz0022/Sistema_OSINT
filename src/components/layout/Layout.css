@@ -1,0 +1,100 @@
+.site-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-app);
+}
+
+.site-main {
+  flex: 1;
+  padding-bottom: 3.5rem;
+}
+
+.site-footer {
+  margin-top: auto;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding: 2.25rem 1.5rem;
+  color: var(--text-secondary);
+}
+
+.site-footer__container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.site-footer__left {
+  max-width: 540px;
+}
+
+.site-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.site-footer__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--cr-blue-600);
+}
+
+[data-theme="dark"] .site-footer__icon {
+  color: var(--cr-blue-500);
+}
+
+.site-footer__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+
+.site-footer__text {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.site-footer__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.site-footer__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-surface-alt);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.site-footer__pill-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--cr-forest-600);
+}
+
+.site-footer__disclaimer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .site-footer__right {
+    align-items: flex-start;
+  }
+}

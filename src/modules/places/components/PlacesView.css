@@ -1,0 +1,54 @@
+.places-filters {
+  margin-bottom: 1.5rem;
+}
+
+.places-layout-area {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.places-map-box {
+  min-height: 260px;
+  background-color: var(--bg-surface-alt);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.places-map-icon {
+  width: 44px;
+  height: 44px;
+  color: var(--cr-blue-600);
+  margin-bottom: 0.75rem;
+}
+
+[data-theme="dark"] .places-map-icon {
+  color: var(--cr-blue-500);
+}
+
+.places-map-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.places-map-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  max-width: 380px;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .places-layout-area {
+    grid-template-columns: 1fr;
+  }
+}
