@@ -8,6 +8,7 @@ import { EmptyState } from '../../../components/common/EmptyState';
 import { SourceInfo } from '../../../components/common/SourceInfo';
 import { DATA_SOURCES } from '../../../constants/sources';
 import { useSecurity } from '../hooks/useSecurity';
+import SecurityMap from './SecurityMap';
 import './SecurityView.css';
 
 export const SecurityView: React.FC = () => {
@@ -39,34 +40,38 @@ export const SecurityView: React.FC = () => {
 
       {/* Filtros específicos de Seguridad */}
       <Card className="security-filters" padding="sm">
-        <div className="filter-bar">
-          <div className="filter-field">
-            <label htmlFor="security-year">Año:</label>
-            <select
-              id="security-year"
-              value={filters.year}
-              onChange={(e) => updateFilters({ year: e.target.value })}
-              className="filter-select"
-            >
-              {years.map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+        <div className="filter-bar" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <div className="filter-field" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <label htmlFor="security-year" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Año:</label>
+            <div className="select-wrapper">
+              <select
+                id="security-year"
+                value={filters.year}
+                onChange={(e) => updateFilters({ year: e.target.value })}
+                className="selector-input"
+              >
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="filter-field">
-            <label htmlFor="crime-type">Tipo de delito:</label>
-            <select
-              id="crime-type"
-              value={filters.crimeType}
-              onChange={(e) => updateFilters({ crimeType: e.target.value })}
-              className="filter-select"
-            >
-              <option value="all">Todos los delitos</option>
-              {stats?.availableCrimeTypes?.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+          <div className="filter-field" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <label htmlFor="crime-type" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Tipo de delito:</label>
+            <div className="select-wrapper">
+              <select
+                id="crime-type"
+                value={filters.crimeType}
+                onChange={(e) => updateFilters({ crimeType: e.target.value })}
+                className="selector-input"
+              >
+                <option value="all">Todos los delitos</option>
+                {stats?.availableCrimeTypes?.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </Card>
@@ -130,6 +135,11 @@ export const SecurityView: React.FC = () => {
             >
               <div className="metric-value">{stats.summary.uniqueCrimeTypes}</div>
             </Card>
+          </div>
+
+          {/* Mapa Territorial */}
+          <div className="security-map-section" style={{ marginBottom: '1.5rem' }}>
+            <SecurityMap />
           </div>
 
           {/* Gráficos */}
