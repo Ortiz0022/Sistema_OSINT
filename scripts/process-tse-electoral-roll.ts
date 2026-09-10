@@ -175,15 +175,14 @@ async function processElectoralRoll() {
     territories: territoriesData
   };
   
-  // Validación estricta final: Buscar cualquier propiedad con datos personales en la estructura
+  // --- Validación Estricta de Privacidad ---
+  // Nos aseguramos que el JSON no contenga las llaves de datos personales
   const jsonString = JSON.stringify(outputJson);
-  if (
-    jsonString.toLowerCase().includes('cedula') ||
-    jsonString.toLowerCase().includes('nombre') || 
-    jsonString.toLowerCase().includes('apellido')
-  ) {
-    console.error('CRÍTICO: El JSON generado contiene palabras clave relacionadas a datos personales.');
-    console.error('El script ha sido abortado por motivos de privacidad.');
+  const privacyRegex = /"(cedula|nombre|apellido|nombres|apellidos|fechacaduc)"\s*:/i;
+  
+  if (privacyRegex.test(jsonString)) {
+    console.error("CRÍTICO: El JSON generado contiene llaves relacionadas a datos personales.");
+    console.error("El script ha sido abortado por motivos de privacidad.");
     process.exit(1);
   }
 

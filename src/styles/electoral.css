@@ -448,3 +448,44 @@
   background-color: var(--cr-coral-100);
   color: var(--cr-coral-500);
 }
+
+/* Analysis Grid */
+.electoral-analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .electoral-analysis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .electoral-analysis-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.electoral-analysis-item {
+  display: flex;
+  flex-direction: column;
+}
+.electoral-analysis-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+.electoral-analysis-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cr-blue-600);
+  margin-bottom: 0.25rem;
+}
+[data-theme="dark"] .electoral-analysis-value {
+  color: var(--cr-blue-400);
+}
+.electoral-analysis-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
