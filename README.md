@@ -1,29 +1,31 @@
-# Observatorio Territorial y de Datos Públicos de Costa Rica
+# Observatorio Territorial y de Datos Publicos de Costa Rica
 
-Plataforma web moderna orientada a la consulta, fiscalización y análisis geoespacial de información pública costarricense basada en metodologías de **Inteligencia de Fuentes Abiertas (OSINT)**.
+Plataforma web moderna orientada a la consulta, fiscalizacion y analisis geoespacial de informacion publica costarricense basada en metodologias de Inteligencia de Fuentes Abiertas (OSINT).
 
-La aplicación provee una base de frontend modular, tipada estrictamente con TypeScript y preparada para que un equipo de cuatro personas desarrolle simultáneamente módulos temáticos independientes compartiendo un selector territorial global en tiempo real y un sistema de diseño institucional con modo claro y oscuro.
+La aplicacion provee una arquitectura full-stack estructurada y tipada estrictamente con TypeScript. Esta disenada para que un equipo pueda desarrollar de manera simultanea multiples modulos tematicos (Contratacion, Seguridad, Datos Publicos, Electoral, etc.). Todos comparten un selector territorial global en tiempo real, un sistema de diseno institucional con soporte nativo para temas claros y oscuros, y un backend liviano en Express para resolver integraciones de CORS o proxies de APIs gubernamentales.
 
 ---
 
-## 🛠️ Tecnologías y Stack
+## Tecnologias y Stack
 
-- **Librería UI:** React 19
-- **Lenguaje:** TypeScript (modo estricto, sin `any`)
+- **Frontend:** React 19, TypeScript (modo estricto)
+- **Backend / Proxy:** Node.js, Express, TSX
 - **Empaquetador y Dev Server:** Vite
-- **Navegación:** React Router DOM v7
-- **Iconografía:** Lucide React
-- **Estilos:** Vanilla CSS moderno con Design Tokens (Variables CSS personalizadas, paleta sobria inspirada en Costa Rica, elevaciones y microinteracciones).
+- **Navegacion:** React Router DOM v7
+- **Iconografia:** Lucide React
+- **Mapas Geoespaciales:** Leaflet, React-Leaflet
+- **Visualizacion de Datos:** Recharts
+- **Estilos:** Vanilla CSS moderno con Design Tokens (variables CSS personalizadas, soporte de modo oscuro).
 
 ---
 
-## 🚀 Instalación y Ejecución
+## Instalacion y Ejecucion
 
 ### Requisitos previos
-- Node.js (v18 o superior recomendado; testeado en Node v24)
+- Node.js (v18 o superior recomendado; probado en Node v24)
 - npm (v9 o superior)
 
-### Pasos de instalación
+### Pasos de instalacion
 
 1. **Clonar o ingresar al directorio del repositorio:**
    ```bash
@@ -39,177 +41,84 @@ La aplicación provee una base de frontend modular, tipada estrictamente con Typ
    ```bash
    npm run dev
    ```
-   La aplicación se levantará normalmente en `http://localhost:5173`.
+   Este comando levantara de forma concurrente tanto el servidor de React (Vite) en el puerto `5173` como el backend (Express) en el puerto `3001`.
 
-4. **Compilar para producción y verificar tipos TypeScript:**
+4. **Compilar para produccion y verificar tipos TypeScript:**
    ```bash
    npm run build
    ```
 
 ---
 
-## 📂 Arquitectura y Estructura de Carpetas
+## Arquitectura y Estructura de Carpetas
 
-El proyecto está diseñado para desacoplar completamente la lógica compartida de los módulos de trabajo individuales:
+El proyecto esta disenado para desacoplar completamente la logica compartida, los scripts de procesamiento y el backend de los modulos tematicos individuales:
 
 ```text
-src/
-├── components/
-│   ├── common/              # Componentes UI reutilizables
-│   │   ├── Badge.tsx        # Indicadores de estado y etiquetas
-│   │   ├── Card.tsx         # Tarjeta interactiva con variantes
-│   │   ├── EmptyState.tsx   # Estado vacío institucional
-│   │   ├── ErrorState.tsx   # Manejo visual de error con reintento
-│   │   ├── LoadingState.tsx # Skeletons y spinners de carga
-│   │   ├── PageHeader.tsx   # Encabezado unificado con breadcrumbs territoriales
-│   │   ├── SectionContainer.tsx # Contenedor responsive con padding estándar
-│   │   ├── SourceInfo.tsx   # Ficha técnica de la fuente oficial
-│   │   └── TerritorialSelector.tsx # Selector en cascada con integración a API real
-│   └── layout/
-│       ├── Layout.tsx       # Estructura maestra con navegación y footer
-│       ├── Navbar.tsx       # Barra de navegación principal y mobile drawer
-│       └── ThemeToggle.tsx  # Conmutador de modo claro y oscuro
-├── constants/
-│   ├── routes.ts            # Rutas y metadatos de los módulos
-│   └── sources.ts           # Metadatos de fuentes oficiales (SICOP, OIJ, etc.)
-├── context/
-│   ├── TerritoryContext.tsx # Contexto global para selección territorial
-│   └── ThemeContext.tsx     # Contexto global de tema (light / dark)
-├── hooks/
-│   ├── useLocation.ts       # Hook principal para consumo territorial
-│   ├── useTerritory.ts      # Alias semántico de useLocation
-│   └── useTheme.ts          # Hook para alternar o consultar tema
-├── modules/                 # 4 Módulos de trabajo independiente para el equipo
-│   ├── procurement/         # Módulo 1: Contratación Pública (SICOP)
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── types/
-│   ├── security/            # Módulo 2: Seguridad (OIJ / Estadísticas Policiales)
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── types/
-│   ├── publicData/          # Módulo 3: Datos Públicos (Portal Nacional de Datos Abiertos)
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   └── types/
-│   └── places/              # Módulo 4: Servicios y Lugares (OpenStreetMap / Overpass)
-│       ├── components/
-│       ├── hooks/
-│       ├── services/
-│       └── types/
-├── pages/                   # Vistas principales vinculadas al router
-│   ├── HomePage.tsx         # Dashboard de inicio e indicadores transversales
-│   ├── ProcurementPage.tsx  # Vista del módulo de contratación
-│   ├── SecurityPage.tsx     # Vista del módulo de seguridad
-│   ├── PublicDataPage.tsx   # Vista del módulo de datos públicos
-│   └── PlacesPage.tsx       # Vista del módulo de servicios y lugares
-├── services/
-│   └── locationService.ts   # Cliente HTTP para la API territorial de Costa Rica
-├── styles/
-│   ├── index.css            # Reset, estilos base y utilidades
-│   └── variables.css        # Paleta y tokens de diseño para modo claro/oscuro
-├── types/
-│   ├── territory.types.ts   # Tipos para la API de división territorial
-│   └── theme.types.ts       # Tipos de tema
-├── App.tsx                  # Enrutador y árbol de Providers
-└── main.tsx                 # Punto de entrada de la aplicación
+.
+├── public/                  # Archivos estaticos y conjuntos de datos (GeoJSON de mapas, etc.)
+├── scripts/                 # Scripts ETL independientes (procesamiento de padron electoral, etc.)
+├── server/                  # Backend en Express para proxies de integracion (CORS)
+│   ├── index.ts             # Punto de entrada del servidor
+│   └── services/            # Servicios backend (ej. oijService.ts para consultar estadisticas policiales)
+└── src/
+    ├── components/
+    │   ├── common/          # Componentes UI reutilizables (Card, Badge, LoadingState, TerritorialSelector)
+    │   └── layout/          # Estructura maestra, navbar y conmutador de temas
+    ├── constants/           # Rutas y metadatos de fuentes oficiales (Activas/Pendientes)
+    ├── context/             # Contextos globales (Territorio y Tema)
+    ├── hooks/               # Hooks compartidos (useLocation, useTheme)
+    ├── modules/             # Modulos de trabajo funcionalmente independientes
+    │   ├── procurement/     # Modulo: Contratacion Publica (SICOP)
+    │   ├── security/        # Modulo: Seguridad (OIJ) - Mapas interactivos y graficos
+    │   ├── publicData/      # Modulo: Datos Publicos Nacionales
+    │   └── places/          # Modulo: Servicios y Lugares (OpenStreetMap)
+    ├── pages/               # Vistas principales vinculadas a las rutas
+    │   └── ElectoralPage.tsx # Modulo nuevo para visualizacion de estadisticas electorales (TSE)
+    ├── services/            # Clientes HTTP compartidos (locationService.ts)
+    ├── styles/              # Reset, utilidades y variables CSS del sistema de diseno
+    ├── types/               # Tipos compartidos
+    ├── App.tsx              # Enrutador principal de React
+    └── main.tsx             # Punto de entrada de Vite
 ```
 
 ---
 
-## 🗺️ Explicación de los 4 Módulos
+## Modulos Funcionales
 
-Cada módulo cuenta con su propio subdirectorio completamente aislado (`components/`, `hooks/`, `services/`, `types/`) para evitar conflictos de Git al trabajar en simultáneo:
+La aplicacion incluye multiples modulos separados para asegurar mantenibilidad y modularidad. Algunos se encuentran en fase de prototipado y otros ya cuentan con integracion de produccion.
 
-1. **Contratación Pública (`src/modules/procurement/`):**
-   - *Fuente futura:* Sistema Integrado de Compras Públicas (**SICOP**).
-   - *Propósito:* Seguimiento de procedimientos licitatorios, concursos públicos, montos adjudicados e instituciones compradoras en el territorio delimitado.
+1. **Seguridad (OIJ):**
+   - *Estado:* Integrado (Fuente Oficial).
+   - *Proposito:* Analisis espacial, temporal y tipologico de la delincuencia.
+   - *Caracteristicas:* Consumo real de los endpoints de estadisticas policiales mediante el servidor proxy Express. Incluye visualizacion mediante Leaflet renderizando poligonos geograficos de Costa Rica que se filtran segun seleccion territorial en sincronia con Recharts.
 
-2. **Seguridad (`src/modules/security/`):**
-   - *Fuente futura:* Organismo de Investigación Judicial (**OIJ**) / Estadísticas Policiales.
-   - *Propósito:* Análisis espacial y temporal de denuncias, tipologías delictivas y patrones de seguridad ciudadana por cantón y distrito.
+2. **Electoral (TSE):**
+   - *Estado:* En desarrollo.
+   - *Proposito:* Visualizacion de distribucion demografica, sexo y centros de votacion basado en cruces asincronos sobre bases de datos abiertas como el padron del TSE. Contiene scripts ETL especiales en Node.js.
 
-3. **Datos Públicos (`src/modules/publicData/`):**
-   - *Fuente futura:* Portal Nacional de Datos Abiertos (**datosabiertos.go.cr**).
-   - *Propósito:* Ingestión y estructuración de un conjunto de datos abierto específico de relevancia cívica e institucional.
+3. **Contratacion Publica (SICOP) y Datos Publicos:**
+   - *Estado:* Interfaz estructurada, fuente pendiente de conexion.
+   - *Proposito:* Seguimiento de procedimientos de compra institucional y datos abiertos.
 
-4. **Servicios y Lugares (`src/modules/places/`):**
-   - *Fuente futura:* **OpenStreetMap** / Overpass API.
-   - *Propósito:* Mapeo y visualización nominal de infraestructura básica comunitaria (salud, educación, centros de emergencia y edificios gubernamentales).
-
----
-
-## 📍 Selector Territorial Global (Integración Real)
-
-El selector territorial permite filtrar toda la plataforma por la División Territorial Administrativa oficial de Costa Rica consumiendo la API pública sin autenticación:
-- **Base URL:** `https://ubicaciones.paginasweb.cr/`
-- **Endpoints:**
-  - `GET /provincias.json`
-  - `GET /provincia/{id}/cantones.json`
-  - `GET /provincia/{provinciaId}/canton/{cantonId}/distritos.json`
-
-### Flujo y Cascada de Selección
-1. Al arrancar la aplicación, se cargan las 7 provincias de forma asíncrona.
-2. Al seleccionar una provincia, se obtienen automáticamente sus cantones.
-3. Si se cambia de provincia, cantón y distrito se reinician de inmediato.
-4. Al seleccionar un cantón, se obtienen sus distritos.
-5. Si se cambia de cantón, el distrito se reinicia de inmediato.
-6. El estado se persiste en el `TerritoryContext` y **se mantiene intacto al navegar entre los diferentes módulos y el inicio**.
-7. Se almacenan tanto los **IDs** como los **Nombres** de provincia, cantón y distrito.
-8. La capa de servicio (`src/services/locationService.ts`) cuenta con validación de respuestas, control de timeout (`AbortController`), caché en memoria y reintento ante fallos de conexión.
-
-### Cómo consumir la ubicación en cualquier componente
-Solo importa el hook `useLocation`:
-```tsx
-import { useLocation } from '../../hooks/useLocation';
-
-export const MiComponente = () => {
-  const {
-    selectedProvince,      // { id: "1", name: "San José" } o null
-    selectedCanton,        // { id: "1", name: "Central" } o null
-    selectedDistrict,      // { id: "1", name: "Carmen" } o null
-    selectedProvinceId,    // "1" o null
-    selectedCantonId,      // "1" o null
-    selectedDistrictId,    // "1" o null
-    formattedLocation,     // "San José > Central > Carmen"
-    isLoadingAny           // boolean
-  } = useLocation();
-
-  return (
-    <div>
-      <p>Territorio activo: {formattedLocation}</p>
-      {selectedProvinceId && <p>ID de Provincia: {selectedProvinceId}</p>}
-    </div>
-  );
-};
-```
+4. **Servicios y Lugares (OSM):**
+   - *Estado:* Estructura inicial (Overpass API).
+   - *Proposito:* Mapeo de infraestructura comunitaria gubernamental y de emergencias.
 
 ---
 
-## 🔌 Cómo Agregar Nuevos Servicios o APIs en Cada Módulo
+## Selector Territorial Global
 
-Cada uno de los 4 integrantes del equipo debe trabajar dentro de su módulo correspondiente siguiendo esta guía:
+El selector territorial transversal permite filtrar toda la plataforma basado en la Division Territorial Administrativa de Costa Rica. 
 
-1. **Definir los tipos en `src/modules/<modulo>/types/<modulo>.types.ts`:**
-   Declara las interfaces TypeScript para las respuestas de la API externa (ej. datos de licitaciones de SICOP o delitos del OIJ).
-2. **Implementar el servicio en `src/modules/<modulo>/services/<modulo>Service.ts`:**
-   Crea las funciones de consulta HTTP (`fetch` o cliente API) recibiendo los parámetros territoriales (`provinceId`, `cantonId`, etc.) y filtros correspondientes.
-3. **Consumir en el hook del módulo `src/modules/<modulo>/hooks/use<Modulo>.ts`:**
-   Utiliza `useLocation()` para detectar los cambios de provincia/cantón/distrito y dispara las consultas de tu servicio, administrando `loading`, `error` y los datos en estados locales.
-4. **Renderizar en `src/modules/<modulo>/components/<Modulo>View.tsx`:**
-   Sustituye los componentes `<EmptyState />` y los bloques de placeholder por tus tablas, mapas interactivos o gráficos reales, usando los componentes comunes `<Card>`, `<Badge>`, `<LoadingState>` y actualizando `<SourceInfo>`.
+- Consume directamente la API en tiempo real de `ubicaciones.paginasweb.cr`.
+- Se normalizan nombres para permitir su sincronizacion con mapeos GeoJSON locales y bases de datos heterogeneas.
+- El estado (Provincia -> Canton -> Distrito) se mantiene persistente mediante React Context al navegar entre los diferentes modulos y paneles.
 
 ---
 
-## 🎨 Sistema de Diseño y Accesibilidad
+## Sistema de Diseno
 
-- **Modo Claro / Modo Oscuro:** Almacenado en `localStorage` y reactivo a la preferencia del sistema operativo (`prefers-color-scheme`).
-- **Paleta Institucional:**
-  - Azul oceánico profundo costarricense (`--cr-blue-900`, `--cr-blue-600`, `--cr-blue-500`)
-  - Esmeralda bosque nuboso (`--cr-forest-600`, `--cr-forest-500`)
-  - Acento rojo/coral discreto para alertas y badges (`--cr-coral-600`)
-  - Pizarra neutro con alto contraste (`--bg-surface`, `--text-primary`, etc.)
-- **Diseño Responsive:** Optimizado para pantallas de escritorio, portátiles, tablets y dispositivos móviles con menú hamburguesa desplegable.
+- **Soporte de Tema:** Modo Claro y Oscuro adaptativos a la preferencia del SO y guardados en localStorage.
+- **Paleta de Costa Rica:** Variables CSS basadas en el azul oceanico oscuro y esmeralda de bosque nuboso, asegurando sobriedad y profesionalismo.
+- **Interfaz Fluida:** Contenedores reactivos, microanimaciones (hover states) unificados en Cards y botones con diseno contemporaneo, libres de librerias de componentes de UI preempaquetadas invasivas.
