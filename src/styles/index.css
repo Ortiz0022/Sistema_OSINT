@@ -1,4 +1,5 @@
 @import './variables.css';
+@import './electoral.css';
 
 *, *::before, *::after {
   box-sizing: border-box;

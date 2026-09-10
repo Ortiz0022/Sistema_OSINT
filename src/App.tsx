@@ -7,7 +7,7 @@ import { HomePage } from './pages/HomePage';
 import { ProcurementPage } from './pages/ProcurementPage';
 import { SecurityPage } from './pages/SecurityPage';
 import { PublicDataPage } from './pages/PublicDataPage';
-import { PlacesPage } from './pages/PlacesPage';
+import { ElectoralPage } from './pages/ElectoralPage';
 import { APP_ROUTES } from './constants/routes';
 
 export const App: React.FC = () => {
@@ -21,7 +21,7 @@ export const App: React.FC = () => {
               <Route path={APP_ROUTES.PROCUREMENT} element={<ProcurementPage />} />
               <Route path={APP_ROUTES.SECURITY} element={<SecurityPage />} />
               <Route path={APP_ROUTES.PUBLIC_DATA} element={<PublicDataPage />} />
-              <Route path={APP_ROUTES.PLACES} element={<PlacesPage />} />
+              <Route path={APP_ROUTES.ELECTORAL} element={<ElectoralPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
