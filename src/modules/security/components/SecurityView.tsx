@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShieldAlert, TrendingUp, Calendar, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldAlert, ShieldCheck, TrendingUp, Tags, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { SectionContainer } from '../../../components/common/SectionContainer';
 import { PageHeader } from '../../../components/common/PageHeader';
@@ -8,16 +8,16 @@ import { EmptyState } from '../../../components/common/EmptyState';
 import { SourceInfo } from '../../../components/common/SourceInfo';
 import { DATA_SOURCES } from '../../../constants/sources';
 import { useSecurity } from '../hooks/useSecurity';
-import { useLocation } from '../../../hooks/useLocation';
 import './SecurityView.css';
 
 export const SecurityView: React.FC = () => {
+  const [showAllDetails, setShowAllDetails] = useState(false);
+
   const { 
     filters, updateFilters, 
     stats, isLoading, error,
     details, isLoadingDetails, detailsError
   } = useSecurity();
-  const { formattedLocation } = useLocation();
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
@@ -36,10 +36,6 @@ export const SecurityView: React.FC = () => {
         badgeText="Módulo OIJ"
         badgeVariant="success"
       />
-
-      <div className="security-active-location">
-        <strong>Territorio Activo:</strong> {formattedLocation}
-      </div>
 
       {/* Filtros específicos de Seguridad */}
       <Card className="security-filters" padding="sm">
@@ -106,7 +102,7 @@ export const SecurityView: React.FC = () => {
               header={
                 <div className="metric-header">
                   <span className="metric-title">Total de Hechos</span>
-                  <ShieldAlert className="metric-icon" />
+                  <ShieldCheck className="metric-icon" />
                 </div>
               }
             >
@@ -128,7 +124,7 @@ export const SecurityView: React.FC = () => {
               header={
                 <div className="metric-header">
                   <span className="metric-title">Tipos de Delito</span>
-                  <Calendar className="metric-icon" />
+                  <Tags className="metric-icon" />
                 </div>
               }
             >
@@ -142,11 +138,22 @@ export const SecurityView: React.FC = () => {
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={stats.chartCrimeTypes} layout="vertical" margin={{ left: 50 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)" />
+                    <XAxis type="number" tick={{ fill: 'var(--text-secondary)' }} />
+                    <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        borderColor: 'var(--border-color)', 
+                        color: 'var(--text-primary)',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)',
+                        padding: '12px'
+                      }}
+                      itemStyle={{ color: 'var(--text-primary)' }}
+                      cursor={{ fill: 'var(--bg-body)', opacity: 0.4 }}
+                    />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} activeBar={{ fill: '#60a5fa' }} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -156,11 +163,21 @@ export const SecurityView: React.FC = () => {
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={stats.chartMonthly}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="total" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                    <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)' }} />
+                    <YAxis tick={{ fill: 'var(--text-secondary)' }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        borderColor: 'var(--border-color)', 
+                        color: 'var(--text-primary)',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)',
+                        padding: '12px'
+                      }}
+                      itemStyle={{ color: 'var(--text-primary)' }}
+                    />
+                    <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 8, fill: '#3b82f6', stroke: '#eff6ff', strokeWidth: 2 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -191,7 +208,7 @@ export const SecurityView: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {details.tableData.map((row, idx) => (
+                      {(showAllDetails ? details.tableData : details.tableData.slice(0, 10)).map((row, idx) => (
                         <tr key={idx}>
                           <td>{row.delito}</td>
                           <td>{row.subdelito}</td>
@@ -201,6 +218,20 @@ export const SecurityView: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+                {details.tableData.length > 10 && (
+                  <div className="details-toggle-container">
+                    <button 
+                      onClick={() => setShowAllDetails(!showAllDetails)}
+                      className="details-toggle-btn"
+                    >
+                      {showAllDetails ? (
+                        <>Ver menos <ChevronUp size={16} /></>
+                      ) : (
+                        <>Ver todos ({details.tableData.length}) <ChevronDown size={16} /></>
+                      )}
+                    </button>
+                  </div>
+                )}
                 {details._notes && (
                   <p className="text-xs text-gray-500 mt-3 italic" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
                     {details._notes}

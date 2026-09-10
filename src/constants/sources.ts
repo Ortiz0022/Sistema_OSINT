@@ -28,7 +28,7 @@ export const DATA_SOURCES: Record<string, SourceMetadata> = {
     id: 'oij-estadisticas',
     name: 'Estadísticas Policiales y Delictivas',
     officialEntity: 'Organismo de Investigación Judicial (OIJ)',
-    status: 'en_preparacion',
+    status: 'activo',
     officialUrl: 'https://sitiooij.poder-judicial.go.cr/',
     description: 'Registros oficiales de incidencias, denuncias y delitos penales.',
   },
