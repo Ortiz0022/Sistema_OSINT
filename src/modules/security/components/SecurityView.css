@@ -1,54 +1,99 @@
 .security-filters {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.security-dual-grid {
+.security-active-location {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.security-charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
-.map-placeholder-box {
-  min-height: 260px;
-  background-color: var(--bg-surface-alt);
-  border: 1px dashed var(--border-default);
-  border-radius: var(--radius-md);
+@media (min-width: 1024px) {
+  .security-charts-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.chart-container {
+  width: 100%;
+  padding-top: 1rem;
+}
+
+.metric-value--text {
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.error-icon {
+  color: var(--danger-color);
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+}
+
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1.5rem;
-  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
 }
 
-.map-placeholder-icon {
-  width: 44px;
-  height: 44px;
-  color: var(--cr-forest-600);
-  margin-bottom: 0.75rem;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
-[data-theme="dark"] .map-placeholder-icon {
-  color: var(--cr-forest-500);
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.map-placeholder-title {
-  font-size: 1rem;
+.table-responsive {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.security-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.security-table th,
+.security-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.security-table th {
+  background-color: var(--bg-body);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.35rem;
 }
 
-.map-placeholder-desc {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  max-width: 380px;
-  line-height: 1.45;
+.security-table tbody tr:hover {
+  background-color: var(--bg-body);
 }
 
-@media (max-width: 640px) {
-  .security-dual-grid {
-    grid-template-columns: 1fr;
-  }
+.text-right {
+  text-align: right;
 }

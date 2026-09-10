@@ -1,18 +1,49 @@
-import type { SecurityIncident, SecurityFilterState } from '../types/security.types';
+import type { SecurityStats, SecurityDetails, SecurityFilterState } from '../types/security.types';
 
-/**
- * Servicio del Módulo de Seguridad.
- * Preparado para la futura integración con las estadísticas policiales y delictivas del OIJ.
- */
 export const securityService = {
-  /**
-   * Consulta incidencias delictivas por territorio y filtros seleccionados.
-   */
-  async getIncidents(
-    _territory: { provinceId?: string; cantonId?: string; districtId?: string },
-    _filters?: Partial<SecurityFilterState>
-  ): Promise<SecurityIncident[]> {
-    // Retorna vacío de forma segura hasta conectar la fuente del OIJ
-    return [];
+  async getStats(
+    territory: { provinceId?: string; cantonId?: string; districtId?: string },
+    filters: Partial<SecurityFilterState>,
+    signal?: AbortSignal
+  ): Promise<SecurityStats> {
+    const params = new URLSearchParams();
+    
+    if (filters.year) params.append('year', filters.year);
+    if (filters.crimeType) params.append('crimeType', filters.crimeType);
+    
+    if (territory.provinceId) params.append('provinceId', territory.provinceId);
+    if (territory.cantonId) params.append('cantonId', territory.cantonId);
+    if (territory.districtId) params.append('districtId', territory.districtId);
+
+    const response = await fetch(`/api/security/stats?${params.toString()}`, { signal });
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching security stats: ${response.statusText}`);
+    }
+    
+    return await response.json();
   },
+
+  async getDetails(
+    territory: { provinceId?: string; cantonId?: string; districtId?: string },
+    filters: Partial<SecurityFilterState>,
+    signal?: AbortSignal
+  ): Promise<SecurityDetails> {
+    const params = new URLSearchParams();
+    
+    if (filters.year) params.append('year', filters.year);
+    if (filters.crimeType) params.append('crimeType', filters.crimeType);
+    
+    if (territory.provinceId) params.append('provinceId', territory.provinceId);
+    if (territory.cantonId) params.append('cantonId', territory.cantonId);
+    if (territory.districtId) params.append('districtId', territory.districtId);
+
+    const response = await fetch(`/api/security/details?${params.toString()}`, { signal });
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching security details: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  }
 };
