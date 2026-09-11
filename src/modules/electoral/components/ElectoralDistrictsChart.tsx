@@ -21,7 +21,6 @@ export const ElectoralDistrictsChart: React.FC<ElectoralDistrictsChartProps> = (
   
   if (data.length === 0) return null;
 
-  const totalVoters = data.reduce((acc, curr) => acc + curr.registeredVoters, 0);
   const maxVoters = Math.max(...data.map(d => d.registeredVoters));
 
   // Sort data descending for the chart

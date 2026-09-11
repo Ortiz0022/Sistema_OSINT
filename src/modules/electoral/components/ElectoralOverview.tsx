@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Users, MapPin, TrendingUp, AlertCircle, Calendar, HelpCircle } from 'lucide-react';
+import { Users, MapPin, TrendingUp, AlertCircle, HelpCircle } from 'lucide-react';
 import { useElectoralData } from '../hooks/useElectoralData';
 import { useTerritoryContext } from '../../../context/TerritoryContext';
 import { ElectoralDistrictsChart } from './ElectoralDistrictsChart';
