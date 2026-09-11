@@ -489,3 +489,114 @@
   color: var(--text-secondary);
 }
 
+
+.intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--cr-blue-600);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-alt);
+}
+
+.intro__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--cr-blue-600);
+}
+
+.intro__title {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.intro__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+
+.electoral-content-grid.expanded {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .electoral-content-grid:not(.expanded) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.electoral-chart-container.col-span-full {
+  grid-column: 1 / -1;
+}
+
+.electoral-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.electoral-toggle-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cr-blue-700);
+  background-color: var(--cr-blue-50);
+  border: 1px solid var(--cr-blue-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.electoral-toggle-btn:hover {
+  background-color: var(--cr-blue-100);
+  border-color: var(--cr-blue-300);
+}
+
+.electoral-chart-item {
+  margin-bottom: 0.5rem;
+}
+
+.electoral-chart-header {
+  margin-bottom: 0.2rem;
+}
+
+.electoral-chart-bar-bg {
+  height: 6px;
+}
+
+.electoral-table-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.electoral-btn-more {
+  padding: 0.5rem 1.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background-color: var(--bg-surface-alt);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.electoral-btn-more:hover {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+

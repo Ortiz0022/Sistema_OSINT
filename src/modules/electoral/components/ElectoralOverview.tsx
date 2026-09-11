@@ -1,26 +1,29 @@
-import React, { useMemo } from 'react';
-import { Users, MapPin, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Users, MapPin, TrendingUp, AlertCircle, Calendar, HelpCircle } from 'lucide-react';
 import { useElectoralData } from '../hooks/useElectoralData';
 import { useTerritoryContext } from '../../../context/TerritoryContext';
 import { ElectoralDistrictsChart } from './ElectoralDistrictsChart';
 import { ElectoralCantonChart } from './ElectoralCantonChart';
 import { ElectoralDistrictsTable } from './ElectoralDistrictsTable';
+import { SourceInfo } from '../../../components/common/SourceInfo';
 
 export const ElectoralOverview: React.FC = () => {
   const { data, loading, error } = useElectoralData();
   const { selection } = useTerritoryContext();
   const { province: selectedProvince, canton: selectedCanton, district: selectedDistrict } = selection;
 
+  const [expandedChart, setExpandedChart] = useState<'none' | 'districts' | 'cantons'>('none');
+
   // Helper to normalize strings for comparison (remove accents)
-  const normalize = (str: string) => 
+  const normalize = (str: string) =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 
   // Filter data based on selected territory
   const filteredData = useMemo(() => {
     if (!data || !selectedProvince || !selectedCanton) return [];
-    
+
     return data.territories.filter(
-      (t) => 
+      (t) =>
         normalize(t.province) === normalize(selectedProvince.name) &&
         normalize(t.canton) === normalize(selectedCanton.name)
     );
@@ -28,7 +31,7 @@ export const ElectoralOverview: React.FC = () => {
 
   // --- CALCULO NACIONAL / PROVINCIAL ---
   const isConsulado = selectedProvince ? normalize(selectedProvince.name) === 'CONSULADO' : false;
-  
+
   const provinceData = useMemo(() => {
     if (!data || !selectedProvince) return [];
     return data.territories.filter(t => normalize(t.province) === normalize(selectedProvince.name));
@@ -89,7 +92,7 @@ export const ElectoralOverview: React.FC = () => {
           Actualmente no hay datos procesados para este territorio.
         </h3>
         <p className="electoral-empty-text">
-          Los resultados mostrados son estadísticas agregadas extraídas de los archivos oficiales. 
+          Los resultados mostrados son estadísticas agregadas extraídas de los archivos oficiales.
           Si no ve datos aquí, es probable que no se haya procesado el archivo ZIP correspondiente a esta región.
         </p>
       </div>
@@ -99,18 +102,18 @@ export const ElectoralOverview: React.FC = () => {
   // Calculate aggregates for the Canton
   const totalVoters = filteredData.reduce((acc, curr) => acc + curr.registeredVoters, 0);
   const districtCount = filteredData.length;
-  
+
   // District with max voters
   const maxDistrict = [...filteredData].sort((a, b) => b.registeredVoters - a.registeredVoters)[0];
 
   // Selected district info (if any)
-  const selectedDistrictData = selectedDistrict 
+  const selectedDistrictData = selectedDistrict
     ? filteredData.find(d => normalize(d.district) === normalize(selectedDistrict.name))
     : null;
 
   let cantonRank = 0;
   let cantonShare = 0;
-  
+
   if (selectedCanton && cantonsInProvince.length > 0) {
     const selectedNormalized = normalize(selectedCanton.name);
     const index = cantonsInProvince.findIndex(c => normalize(c.name) === selectedNormalized);
@@ -123,9 +126,9 @@ export const ElectoralOverview: React.FC = () => {
   // --- CALCULO CANTONAL (NUEVOS INDICADORES) ---
   const sortedDistricts = [...filteredData].sort((a, b) => b.registeredVoters - a.registeredVoters);
   const minDistrict = sortedDistricts[sortedDistricts.length - 1];
-  
+
   const avgDistrictVoters = districtCount > 0 ? totalVoters / districtCount : 0;
-  
+
   const top3Districts = sortedDistricts.slice(0, 3);
   const top3Voters = top3Districts.reduce((acc, d) => acc + d.registeredVoters, 0);
   const top3Share = totalVoters > 0 ? (top3Voters / totalVoters) * 100 : 0;
@@ -141,7 +144,19 @@ export const ElectoralOverview: React.FC = () => {
 
   return (
     <div className="electoral-container">
-      
+
+      {/* Explicación de entrada, normalizado */}
+      <div className="intro">
+        <HelpCircle className="intro__icon" />
+        <div>
+          <p className="intro__title">¿Qué estoy viendo?</p>
+          <p className="intro__text">
+            El Tribunal Supremo de Elecciones publica el padrón nacional completo; acá está cruzado con tu territorio.
+            Usá el selector de arriba para cambiar de provincia o cantón — <strong>todo en la página se actualiza solo</strong>.
+          </p>
+        </div>
+      </div>
+
       {/* 1. Resumen Principal (Las 4 Cards Actuales) */}
       <div className="electoral-summary-grid">
         {/* Card 1: Total Electores */}
@@ -243,7 +258,7 @@ export const ElectoralOverview: React.FC = () => {
               </div>
             </>
           )}
-          
+
           <div className="electoral-analysis-item">
             <p className="electoral-analysis-label">Promedio por Distrito Electoral</p>
             <p className="electoral-analysis-value">{Math.round(avgDistrictVoters).toLocaleString('es-CR')} electores</p>
@@ -265,44 +280,38 @@ export const ElectoralOverview: React.FC = () => {
       </div>
 
       {/* 4 y 5. Gráficos y Tabla */}
-      <div className="electoral-content-grid">
-        <ElectoralDistrictsChart data={filteredData} />
-        {!isConsulado && <ElectoralCantonChart data={cantonsInProvince} />}
+      <div className={`electoral-content-grid ${expandedChart !== 'none' ? 'expanded' : ''}`}>
+        <div className={`electoral-chart-container ${expandedChart === 'districts' ? 'col-span-full' : ''}`}>
+          <ElectoralDistrictsChart
+            data={filteredData}
+            isExpanded={expandedChart === 'districts'}
+            onToggleExpand={(val) => setExpandedChart(val ? 'districts' : 'none')}
+          />
+        </div>
+        {!isConsulado && (
+          <div className={`electoral-chart-container ${expandedChart === 'cantons' ? 'col-span-full' : ''}`}>
+            <ElectoralCantonChart
+              data={cantonsInProvince}
+              isExpanded={expandedChart === 'cantons'}
+              onToggleExpand={(val) => setExpandedChart(val ? 'cantons' : 'none')}
+            />
+          </div>
+        )}
       </div>
-      
+
       <div className="mt-6">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Tabla de Detalle por Distrito Electoral</h3>
         <ElectoralDistrictsTable data={filteredData} />
       </div>
 
       {/* Metadata Section */}
-      <div className="electoral-metadata">
-        <div className="electoral-metadata-grid">
-          <div className="electoral-metadata-info">
-            <p><strong>Fuente:</strong> {data.metadata.source}</p>
-            <p><strong>Conjunto de datos:</strong> {data.metadata.dataset}</p>
-            <p><strong>Método:</strong> Procesamiento ETL de archivos oficiales ZIP/TXT</p>
-          </div>
-          
-          <div className="electoral-metadata-stats">
-            <p className="electoral-metadata-date">
-              <Calendar size={16} />
-              <span>
-                <strong>Procesado:</strong>{' '}
-                {new Date(data.metadata.processedAt).toLocaleDateString('es-CR')}
-              </span>
-            </p>
-            <p><strong>Registros procesados:</strong> {data.metadata.recordsProcessed.toLocaleString('es-CR')}</p>
-          </div>
-        </div>
-        
-        <div className="electoral-privacy-notice">
-          <AlertCircle className="electoral-privacy-icon" />
-          <p>
-            Los resultados mostrados son estadísticas agregadas. El sistema no almacena ni presenta datos personales del padrón.
-          </p>
-        </div>
-      </div>
+      <SourceInfo
+        sourceName="Padrón Nacional Electoral — Tribunal Supremo de Elecciones (datos abiertos)"
+        entityName="Tribunal Supremo de Elecciones (TSE) · Archivos Oficiales"
+        status="activo"
+        officialUrl="https://www.tse.go.cr/descarga_padron.html"
+        queryDate={new Date(data.metadata.processedAt).toLocaleDateString('es-CR')}
+        notes={`Estadísticas agregadas. Procesado mediante ETL local (${data.metadata.recordsProcessed.toLocaleString('es-CR')} registros). El sistema no almacena ni expone datos personales del padrón.`}
+      />
 
     </div>
   );
