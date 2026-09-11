@@ -1,6 +1,6 @@
 # Módulo 1 — Compras del Estado (fuente OSINT: SICOP)
 
-> **Integrante responsable:** _(completar con el nombre del integrante)_
+> **Integrante responsable:** Katheryn Méndez
 
 Este módulo muestra cuánto dinero egresa el Estado costarricense cuando compra
 bienes y servicios, en qué parte del país ocurre ese egreso y a qué zonas les
@@ -75,11 +75,29 @@ Intentar sortear eso significaría simular una sesión del sitio, que es
 exactamente lo que el enunciado prohíbe ("sin evadir autenticación, CAPTCHA,
 permisos ni controles de seguridad").
 
-**Por eso se usa el Observatorio de Compra Pública, que no es un tercero:** es el
-Ministerio de Hacienda —la institución dueña de SICOP— publicando *los mismos
-datos de SICOP* como archivos abiertos pensados para descarga automática. La
-propia página lo dice: *"Fuente de datos: SICOP"*, *"archivos en formato CSV
-comprimidos y agrupados por año y mes"*, *"se actualizan diariamente"*.
+**Por eso se usa el Observatorio de Compra Pública, que no es un tercero:** es una
+plataforma del **Ministerio de Hacienda** que republica los datos de SICOP como
+archivos abiertos pensados para descarga automática. Lo dice el propio sitio, en
+*Acerca del Observatorio*:
+
+> "El equipo interdisciplinario ejecutor de este proyecto en Costa Rica optó por
+> utilizar datos del Sistema Integrado de Compras Públicas (SICOP) a partir del
+> año 2010."
+
+> "El Observatorio de Compra Pública es de libre acceso para toda la población
+> costarricense; no requiere ningún tipo de autenticación o creación de usuario.
+> Esta plataforma permite obtener datos históricos, abiertos, consumibles y
+> reutilizables."
+
+Y la propia página de descargas **documenta la descarga por software**, con
+exactamente el patrón de URL que usa este ETL:
+
+> "En caso de querer descargar los archivos mediante programas, es posible
+> hacerlo mediante URLs en las que se modifique la fecha del archivo de la forma:
+> `https://dlsaobservatorioprod.blob.core.windows.net/fs-synapse-observatorio-produccion/Zip/yyyymm.zip`"
+
+Es decir que el mecanismo de consumo no es un atajo ni una inferencia: es el que
+la fuente publica para ese fin.
 
 En resumen: **la fuente es SICOP**; el Observatorio es el canal por el que SICOP
 llega en un formato que un programa puede consumir. Las dos direcciones se citan

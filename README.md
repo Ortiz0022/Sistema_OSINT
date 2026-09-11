@@ -62,7 +62,7 @@ De acuerdo con la distribución de trabajo del proyecto (**4 Fuentes OSINT, 4 In
 - **Qué obtiene la aplicación:** Procedimientos de contratación, montos adjudicados en colones (CRC) y dólares (USD), instituciones compradoras, empresas adjudicatarias y su localización geográfica.
 - **Endpoint / Origen:** Contenedor público Azure Blob del Observatorio de Compra Pública:
   `https://dlsaobservatorioprod.blob.core.windows.net/fs-synapse-observatorio-produccion/Zip/`
-- **Mecanismo técnico:** Script ETL (`src/modules/procurement/etl/fetchSicop.mjs`). Realiza peticiones HTTP con encabezados `Range: bytes=...` para leer el directorio central del ZIP sin descargar el archivo completo de varios gigabytes. Extrae exclusivamente `ProcedimientoAdjudicacion.csv`, `InstitucionesRegistradas.csv` y `Proveedores.csv`, normaliza las ubicaciones contra la DTA y genera `public/sicop/sicop-territorial.json`.
+- **Mecanismo técnico:** Script ETL (`src/modules/procurement/etl/fetchSicop.mjs`). Realiza peticiones HTTP con encabezados `Range: bytes=...` para leer el directorio central del ZIP sin descargar el archivo completo (~48 MB por mes; 13,9 MB descargados en lugar de 1 017 MB en la corrida de 24 meses, un 98,6 % menos). Extrae exclusivamente `ProcedimientoAdjudicacion.csv`, `InstitucionesRegistradas.csv` y `Proveedores.csv`, normaliza las ubicaciones contra la DTA y genera `public/sicop/sicop-territorial.json`.
 
 #### 2. Seguridad y Estadísticas Policiales (OIJ) — Responsable: Greilyn Esquivel
 
