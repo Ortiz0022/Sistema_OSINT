@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, ShieldCheck, TrendingUp, Tags, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, TrendingUp, Tags, AlertCircle, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { SectionContainer } from '../../../components/common/SectionContainer';
 import { PageHeader } from '../../../components/common/PageHeader';
@@ -37,6 +37,20 @@ export const SecurityView: React.FC = () => {
         badgeText="Módulo OIJ"
         badgeVariant="success"
       />
+
+      {/* Tarjeta de Información */}
+      <div className="intro">
+        <HelpCircle className="intro__icon" />
+        <div>
+          <p className="intro__title">¿Qué estoy viendo?</p>
+          <p className="intro__text">
+            La seguridad pública se mide a través de las denuncias procesadas por el Organismo de Investigación Judicial (OIJ). En este panel consultamos esos datos oficiales en tiempo real para mostrarte la incidencia criminal (asaltos, robos de vehículos, homicidios, etc.) directamente en el mapa.
+          </p>
+          <p className="intro__text" style={{ marginTop: '0.75rem' }}>
+            Así podés descubrir <strong>el comportamiento criminal de tu comunidad</strong> y <strong>en qué meses ocurren más incidentes</strong>.
+          </p>
+        </div>
+      </div>
 
       {/* Filtros específicos de Seguridad */}
       <Card className="security-filters" padding="sm">

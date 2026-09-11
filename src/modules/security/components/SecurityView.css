@@ -202,3 +202,41 @@
   font-family: inherit;
   z-index: 1;
 }
+
+/* ---------------------------------------------------------------- */
+/* Recuadro "¿Qué estoy viendo?"                                     */
+/* ---------------------------------------------------------------- */
+
+.intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--chart-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-alt);
+}
+
+.intro__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--chart-primary);
+}
+
+.intro__title {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.intro__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
