@@ -155,26 +155,6 @@
   box-shadow: var(--focus-ring);
 }
 
-.filter-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin: 1rem 0 0;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--border-subtle);
-  font-size: 0.8125rem;
-  line-height: 1.55;
-  color: var(--text-secondary);
-}
-
-.filter-note__icon {
-  flex-shrink: 0;
-  width: 15px;
-  height: 15px;
-  margin-top: 3px;
-  color: var(--chart-primary);
-}
-
 /* ---------------------------------------------------------------- */
 /* Alcance y avisos                                                  */
 /* ---------------------------------------------------------------- */
@@ -303,15 +283,6 @@
 .area-tag__icon {
   width: 13px;
   height: 13px;
-}
-
-.card-note {
-  margin: 1rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-subtle);
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: var(--text-muted);
 }
 
 .chart-empty {
@@ -836,36 +807,156 @@
 /* Explicaciones de cada tarjeta y de cada bloque                    */
 /* ---------------------------------------------------------------- */
 
-/*
- * `card-help` es el texto que explica, dentro de cada tarjeta, qué se está
- * mostrando y cómo leerlo. Va antes del gráfico a propósito: quien llega a la
- * página lo lee primero y no tiene que deducir el significado de las barras.
- */
-.card-help {
-  margin: 0 0 1.15rem;
-  padding-bottom: 0.9rem;
-  border-bottom: 1px dashed var(--border-subtle);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.card-help strong {
-  color: var(--text-primary);
-}
-
-/* Explicación de un bloque completo, fuera de una tarjeta. */
-.section-help {
-  margin: 0 0 0.85rem;
-  font-size: 0.8125rem;
-  line-height: 1.55;
-  color: var(--text-secondary);
-}
-
 .intro__text + .intro__text {
   margin-top: 0.6rem;
 }
 
 .intro__text strong {
   color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------------- */
+/* Glosario plegable                                                 */
+/* ---------------------------------------------------------------- */
+
+.glossary-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.glossary-toggle:hover .glossary-toggle__title {
+  color: var(--chart-primary);
+}
+
+.glossary-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.glossary-toggle__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--chart-primary);
+}
+
+.glossary-toggle__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.glossary-toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.glossary-toggle__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.glossary-toggle__hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.glossary-toggle__chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.glossary-toggle__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Términos compactos que se ven con el glosario cerrado. */
+.glossary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.glossary-chip {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: help;
+  transition: all var(--transition-fast);
+}
+
+.glossary-chip:hover,
+.glossary-chip:focus-visible {
+  outline: none;
+  border-style: solid;
+  border-color: var(--chart-primary);
+  background-color: var(--bg-surface-alt);
+  color: var(--text-primary);
+}
+
+.glossary .glossary__item dt {
+  cursor: default;
+}
+
+.glossary {
+  margin-top: 1rem;
+}
+
+/*
+ * El globo se monta en `document.body` mediante un portal, así que no puede
+ * depender de ningún contenedor del módulo: se declara de forma autónoma.
+ */
+.glossary-tip {
+  position: fixed;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  pointer-events: none;
+  animation: glossary-tip-in 120ms ease-out;
+}
+
+.glossary-tip strong {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+@keyframes glossary-tip-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glossary-tip { animation: none; }
 }

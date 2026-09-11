@@ -53,40 +53,52 @@ export const LENS_LABELS = {
   },
 } as const;
 
-/** Glosario que se muestra en la interfaz para los términos inevitables. */
+/**
+ * Glosario que se muestra en la interfaz para los términos inevitables.
+ *
+ * Cada entrada lleva dos versiones: `short` para el globo que aparece al pasar
+ * el mouse por encima del término, y `definition` para la lista desplegada.
+ */
 export const GLOSSARY = [
   {
     term: 'Egreso',
+    short: 'Dinero que sale de las arcas públicas.',
     definition:
       'El dinero que sale de las arcas públicas. En esta página siempre se refiere a dinero que sale para pagarle a alguien que le vendió algo al Estado.',
   },
   {
     term: 'Compra adjudicada',
+    short: 'Un bien o servicio que el Estado ya decidió comprarle a alguien.',
     definition:
       'Un bien o servicio que el Estado ya decidió comprarle a una empresa específica. Un mismo concurso puede tener varias, una por cada cosa que se compra.',
   },
   {
     term: 'Dinero comprometido',
+    short: 'Lo que se aprobó pagar, no lo que ya se pagó.',
     definition:
       'El dinero que el Estado se comprometió a pagar por esas compras. No es lo que ya pagó: es lo que quedó aprobado. En SICOP se le llama "monto adjudicado".',
   },
   {
     term: 'Institución que compra',
+    short: 'La entidad pública que hace la compra.',
     definition:
       'La entidad pública que hace la compra: un ministerio, una municipalidad, la CCSS, el ICE, una universidad estatal, etc.',
   },
   {
     term: 'Empresa que vende',
+    short: 'Quien le vende al Estado. En SICOP se le llama "proveedor".',
     definition:
       'La empresa o persona que ganó el concurso y le vende al Estado. En SICOP se le llama "proveedor".',
   },
   {
     term: 'Tipo de concurso',
+    short: 'La forma en que se hizo la compra, según cuánto cuesta.',
     definition:
       'La forma en que se hizo la compra. Las grandes usan licitación mayor; las pequeñas y urgentes usan procedimientos más rápidos.',
   },
   {
     term: 'Dirección registrada',
+    short: 'La dirección anotada en SICOP, no donde se usa lo comprado.',
     definition:
       'La dirección que la institución o la empresa tiene anotada en SICOP. Es donde están sus oficinas, no necesariamente donde se usa lo comprado.',
   },

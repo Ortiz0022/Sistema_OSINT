@@ -17,8 +17,6 @@ export const PlacesView: React.FC = () => {
       <PageHeader
         title="Servicios y Lugares del Territorio"
         description="Exploración de infraestructura comunitaria, equipamiento cívico, centros de salud y servicios esenciales en Costa Rica."
-        badgeText="Módulo en Preparación"
-        badgeVariant="warning"
       />
 
       {/* Filtros específicos de Servicios y Lugares */}
@@ -64,7 +62,7 @@ export const PlacesView: React.FC = () => {
           }
         >
           <div className="metric-placeholder">
-            <span className="metric-placeholder__badge">Módulo en preparación</span>
+            <span className="metric-placeholder__badge">Próximamente</span>
             <span className="metric-placeholder__sub">Sin datos disponibles todavía</span>
           </div>
         </Card>
@@ -78,7 +76,7 @@ export const PlacesView: React.FC = () => {
           }
         >
           <div className="metric-placeholder">
-            <span className="metric-placeholder__badge">Módulo en preparación</span>
+            <span className="metric-placeholder__badge">Próximamente</span>
             <span className="metric-placeholder__sub">Sin datos disponibles todavía</span>
           </div>
         </Card>
@@ -92,7 +90,7 @@ export const PlacesView: React.FC = () => {
           }
         >
           <div className="metric-placeholder">
-            <span className="metric-placeholder__badge">Módulo en preparación</span>
+            <span className="metric-placeholder__badge">Próximamente</span>
             <span className="metric-placeholder__sub">Sin datos disponibles todavía</span>
           </div>
         </Card>
@@ -110,7 +108,7 @@ export const PlacesView: React.FC = () => {
         >
           <div className="places-map-box">
             <Compass className="places-map-icon" />
-            <h4 className="places-map-title">Módulo en preparación</h4>
+            <h4 className="places-map-title">Servicios y Lugares</h4>
             <p className="places-map-desc">
               Espacio preparado para montar el mapa interactivo sobre la división territorial seleccionada sin geocodificaciones previas.
             </p>

@@ -181,13 +181,9 @@
     align-items: stretch;
   }
 
-  .selector-input {
+  .custom-dropdown {
     width: 100%;
     min-width: unset;
-  }
-
-  .select-wrapper {
-    width: 100%;
   }
 
   .selector-clear-btn {
