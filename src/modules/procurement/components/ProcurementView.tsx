@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   ArrowLeftRight,
   Building2,
-  Database,
   HelpCircle,
   Layers,
   Search,
@@ -20,7 +19,6 @@ import { SourceInfo } from '../../../components/common/SourceInfo';
 import { LENS_LABELS, SICOP_SOURCE } from '../constants/sicopSource';
 import { useProcurement } from '../hooks/useProcurement';
 import {
-  formatCrc,
   formatCrcCompact,
   formatInteger,
   formatMonth,
@@ -90,12 +88,6 @@ export const ProcurementView: React.FC = () => {
                 puente— queda registrado en SICOP: qué compró, a qué empresa y por cuánto dinero.
                 Aquí juntamos {formatInteger(dataset.meta.conteos.lineasUsadas)} de esas compras de
                 los últimos {dataset.meta.periodos.length} meses y las ubicamos en el mapa del país.
-              </p>
-              <p className="intro__text">
-                Así se puede ver <strong>cuánto egresa cada provincia</strong> y{' '}
-                <strong>a qué zonas del país llega ese dinero</strong>. Para cambiar de territorio,
-                usá el selector de provincia y cantón que está arriba de la página. Al final hay un
-                glosario con el significado de cada palabra.
               </p>
             </div>
           </div>
@@ -249,7 +241,7 @@ export const ProcurementView: React.FC = () => {
             </Card>
           </div>
 
-          <div className="module-columns">
+          <div className="module-main-area">
             <Card
               header={
                 <div className="area-header">
@@ -278,74 +270,6 @@ export const ProcurementView: React.FC = () => {
                   ))}
                 </ul>
               )}
-            </Card>
-
-            <Card
-              header={
-                <div className="area-header">
-                  <h3 className="area-title">¿De dónde salen estos datos?</h3>
-                  <span className="area-tag">
-                    <Database className="area-tag__icon" /> Fuente y fecha
-                  </span>
-                </div>
-              }
-            >
-              <dl className="provenance">
-                <div>
-                  <dt>Sistema de origen</dt>
-                  <dd>
-                    {dataset.meta.sistemaOrigen}. Es el sistema donde por ley quedan registradas
-                    todas las compras del Estado.{' '}
-                    <a href={SICOP_SOURCE.officialUrl} target="_blank" rel="noopener noreferrer">
-                      Módulo de datos abiertos de SICOP
-                    </a>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Quién publica los archivos que descargamos</dt>
-                  <dd>
-                    {dataset.meta.entidad}. Republica los mismos datos de SICOP como archivos
-                    abiertos que sí se pueden descargar de forma automática.{' '}
-                    <a href={SICOP_SOURCE.distributionUrl} target="_blank" rel="noopener noreferrer">
-                      Página de descargas
-                    </a>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Cada cuánto se actualizan</dt>
-                  <dd>{dataset.meta.actualizacion}</dd>
-                </div>
-                <div>
-                  <dt>Cómo los obtuvimos</dt>
-                  <dd>
-                    Un programa del proyecto descarga solo los archivos oficiales mes a mes, los
-                    ordena y los ubica en provincias y cantones usando la lista territorial oficial
-                    de Costa Rica.
-                  </dd>
-                </div>
-                <div>
-                  <dt>Archivo de origen</dt>
-                  <dd className="provenance__mono">{dataset.meta.urlDatos}</dd>
-                </div>
-                <div>
-                  <dt>Fecha en que se descargaron</dt>
-                  <dd>{new Date(dataset.meta.generadoEn).toLocaleString('es-CR')}</dd>
-                </div>
-                <div>
-                  <dt>Cuánto se procesó</dt>
-                  <dd>
-                    {formatInteger(dataset.meta.conteos.lineasUsadas)} compras, por un total de{' '}
-                    {formatCrc(dataset.meta.montoTotalCrc)}
-                  </dd>
-                </div>
-              </dl>
-
-              <p className="provenance__intro">Cosas que hay que tener claras al leer estos números:</p>
-              <ul className="provenance__warnings">
-                {dataset.meta.advertencias.map((advertencia) => (
-                  <li key={advertencia}>{advertencia}</li>
-                ))}
-              </ul>
             </Card>
           </div>
 
