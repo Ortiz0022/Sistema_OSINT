@@ -20,9 +20,9 @@ export const DATA_SOURCES: Record<string, SourceMetadata> = {
     id: 'sicop',
     name: 'Sistema Integrado de Compras Públicas (SICOP)',
     officialEntity: 'Ministerio de Hacienda / RACSA',
-    status: 'en_preparacion',
+    status: 'activo',
     officialUrl: 'https://www.sicop.go.cr/',
-    description: 'Plataforma oficial de compras y contrataciones del Estado costarricense.',
+    description: 'Plataforma oficial de compras y contrataciones del Estado costarricense, procesada a través del Observatorio de Compra Pública.',
   },
   oij: {
     id: 'oij-estadisticas',
@@ -43,11 +43,19 @@ export const DATA_SOURCES: Record<string, SourceMetadata> = {
     description:
       'Catálogo oficial de datos abiertos de instituciones públicas costarricenses, sobre CKAN. El módulo de Datos Públicos consume en vivo el padrón de Pymes activas que publica el MEIC.',
   },
+  tse: {
+    id: 'tse-electoral',
+    name: 'Padrón Electoral Nacional',
+    officialEntity: 'Tribunal Supremo de Elecciones (TSE)',
+    status: 'activo',
+    officialUrl: 'https://www.tse.go.cr/',
+    description: 'Estadísticas demográficas de electores, distribución por sexo y centros de votación.',
+  },
   osm: {
     id: 'osm-overpass',
     name: 'OpenStreetMap / Overpass Cartografía',
     officialEntity: 'OpenStreetMap Foundation & Comunidad Costa Rica',
-    status: 'en_preparacion',
+    status: 'planificado',
     officialUrl: 'https://www.openstreetmap.org/',
     description: 'Datos geoespaciales colaborativos de infraestructura y servicios comunitarios.',
   },

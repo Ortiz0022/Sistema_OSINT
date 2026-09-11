@@ -1,73 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import {
-  FileText,
-  ShieldAlert,
-  Database,
-  Compass,
-  ArrowRight,
-  MapPin,
-  Layers,
-  Sparkles,
-} from 'lucide-react';
+import { MapPin, Layers, Sparkles } from 'lucide-react';
 import { SectionContainer } from '../components/common/SectionContainer';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
-import { EmptyState } from '../components/common/EmptyState';
+import { TerritorialSummary } from '../components/home/TerritorialSummary';
 import { useLocation } from '../hooks/useLocation';
-import { APP_ROUTES } from '../constants/routes';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
   const {
-    selectedProvince,
-    selectedCanton,
-    selectedDistrict,
     formattedLocation,
   } = useLocation();
-
-  const moduleCards = [
-    {
-      id: 'procurement',
-      title: 'Contratación Pública',
-      source: 'SICOP',
-      path: APP_ROUTES.PROCUREMENT,
-      icon: <FileText className="module-card__icon" />,
-      description: 'Fiscalización y seguimiento de licitaciones, compras y adjudicaciones del Estado.',
-      statusText: 'Módulo en preparación',
-      tagColor: 'primary' as const,
-    },
-    {
-      id: 'security',
-      title: 'Seguridad y Estadísticas Policiales',
-      source: 'OIJ / Poder Judicial',
-      path: APP_ROUTES.SECURITY,
-      icon: <ShieldAlert className="module-card__icon" />,
-      description: 'Análisis de datos de incidencias, delitos y tendencias de seguridad ciudadana.',
-      statusText: 'Módulo en preparación',
-      tagColor: 'primary' as const,
-    },
-    {
-      id: 'publicData',
-      title: 'Datos Públicos',
-      source: 'Portal Nacional de Datos Abiertos',
-      path: APP_ROUTES.PUBLIC_DATA,
-      icon: <Database className="module-card__icon" />,
-      description: 'Conjuntos de datos abiertos gubernamentales para transparencia e investigación cívica.',
-      statusText: 'Módulo en preparación',
-      tagColor: 'primary' as const,
-    },
-    {
-      id: 'electoral',
-      title: 'Padrón Electoral',
-      source: 'Tribunal Supremo de Elecciones (TSE)',
-      path: APP_ROUTES.ELECTORAL,
-      icon: <Compass className="module-card__icon" />,
-      description: 'Estadísticas agregadas del padrón electoral distribuidas por territorio.',
-      statusText: 'Módulo Activo',
-      tagColor: 'primary' as const,
-    },
-  ];
 
   return (
     <SectionContainer>
@@ -91,64 +34,10 @@ export const HomePage: React.FC = () => {
           <p className="hero-banner__desc">
             Plataforma centralizada de inteligencia cívica y fuentes abiertas para la fiscalización, análisis geoespacial y consulta ciudadana del territorio costarricense.
           </p>
-
-          <div className="hero-territory-status">
-            <span className="hero-territory-status__label">Foco Territorial Activo:</span>
-            <div className="hero-territory-tags">
-              <span className="territory-chip">
-                <strong>Provincia:</strong> {selectedProvince ? selectedProvince.name : 'Todas'}
-              </span>
-              <span className="territory-chip">
-                <strong>Cantón:</strong> {selectedCanton ? selectedCanton.name : 'Todos'}
-              </span>
-              <span className="territory-chip">
-                <strong>Distrito:</strong> {selectedDistrict ? selectedDistrict.name : 'Todos'}
-              </span>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Grid de 4 Tarjetas Principales de Acceso a Módulos */}
-      <section className="modules-section" aria-label="Módulos del Observatorio">
-        <div className="section-title-row">
-          <div>
-            <h2 className="section-heading">Dimensiones de Consulta Territorial</h2>
-            <p className="section-subheading">
-              Acceso a las cuatro áreas analíticas del observatorio estructuradas para el trabajo modular.
-            </p>
-          </div>
-          <Badge variant="default">4 Módulos Conectables</Badge>
-        </div>
-
-        <div className="modules-grid">
-          {moduleCards.map((card) => (
-            <Link key={card.id} to={card.path} className="module-card-link">
-              <Card variant="interactive" className="module-card" padding="lg">
-                <div className="module-card__top">
-                  <div className="module-card__icon-box">
-                    {card.icon}
-                  </div>
-                  <Badge variant="warning">{card.statusText}</Badge>
-                </div>
-
-                <div className="module-card__body">
-                  <h3 className="module-card__title">{card.title}</h3>
-                  <span className="module-card__source">Fuente oficial: {card.source}</span>
-                  <p className="module-card__desc">{card.description}</p>
-                </div>
-
-                <div className="module-card__footer">
-                  <span className="module-card__action-text">Ingresar al módulo</span>
-                  <ArrowRight className="module-card__arrow" />
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Espacio preparado para Futuro Resumen Combinado Multi-fuente */}
+      {/* Resumen combinado de las cuatro fuentes para el territorio activo */}
       <section className="consolidated-section" aria-label="Resumen consolidado">
         <Card
           header={
@@ -158,18 +47,16 @@ export const HomePage: React.FC = () => {
                 <div>
                   <h3 className="consolidated-header__title">Resumen Territorial Integrado</h3>
                   <span className="consolidated-header__sub">
-                    Vista consolidada OSINT • Cruzamiento de fuentes públicas
+                    Este panel unifica los indicadores de contratación (SICOP), seguridad (OIJ),
+                    datos públicos (MEIC) y población (TSE) para el cantón o distrito seleccionado.
                   </span>
                 </div>
               </div>
-              <Badge variant="outline">Espacio para Síntesis Multi-Fuente</Badge>
+              <Badge variant="outline">4 fuentes</Badge>
             </div>
           }
         >
-          <EmptyState
-            title="Sin datos disponibles todavía"
-            message="Este panel unificará de manera transversal los indicadores de contratación (SICOP), seguridad (OIJ), datasets abiertos y equipamiento territorial para el cantón o distrito seleccionado."
-          />
+          <TerritorialSummary />
         </Card>
       </section>
     </SectionContainer>

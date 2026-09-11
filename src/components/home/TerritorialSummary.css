@@ -1,0 +1,172 @@
+/*
+ * Resumen Territorial Integrado (portada).
+ *
+ * Reutiliza el mismo lenguaje visual que las tarjetas de indicadores de los
+ * módulos: rótulo en mayúsculas, número grande en la tipografía de display y
+ * una línea de contexto discreta.
+ */
+
+.territorial-summary__scope {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.territorial-summary__scope strong {
+  color: var(--text-primary);
+}
+
+.territorial-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.summary-card .card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  height: 100%;
+}
+
+.summary-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.summary-card__icon {
+  display: inline-flex;
+  color: var(--cr-blue-600);
+}
+
+.summary-card__icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.summary-card__source {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.summary-card__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.summary-card__value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.summary-card__context {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* Marcador de carga propio de cada tarjeta: una sola falla no vacía el resto. */
+.summary-card__skeleton {
+  display: block;
+  width: 65%;
+  height: 1.8rem;
+  margin: 0.15rem 0 0.35rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-alt) 25%,
+    var(--bg-surface-hover) 50%,
+    var(--bg-surface-alt) 75%
+  );
+  background-size: 200% 100%;
+  animation: summary-card-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes summary-card-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary-card__skeleton { animation: none; }
+}
+
+.summary-card__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.4rem 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.summary-card__error-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  color: var(--cr-amber-600);
+}
+
+.summary-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  /* Empuja el enlace al pie aunque las tarjetas tengan textos de distinto alto. */
+  margin-top: auto;
+  padding-top: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cr-blue-600);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.summary-card__link:hover {
+  color: var(--cr-blue-500);
+}
+
+.summary-card__link:focus-visible {
+  outline: none;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--focus-ring);
+}
+
+.summary-card__link-icon {
+  width: 13px;
+  height: 13px;
+  transition: transform var(--transition-fast);
+}
+
+.summary-card__link:hover .summary-card__link-icon {
+  transform: translateX(2px);
+}
+
+@media (max-width: 900px) {
+  .territorial-summary__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .territorial-summary__grid {
+    grid-template-columns: 1fr;
+  }
+}

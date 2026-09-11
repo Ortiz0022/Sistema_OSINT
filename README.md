@@ -2,7 +2,7 @@
 
 Plataforma web moderna orientada a la consulta, fiscalizacion y analisis geoespacial de informacion publica costarricense basada en metodologias de Inteligencia de Fuentes Abiertas (OSINT).
 
-La aplicacion provee una arquitectura full-stack estructurada y tipada estrictamente con TypeScript. Esta disenada para que un equipo pueda desarrollar de manera simultanea multiples modulos tematicos (Contratacion, Seguridad, Datos Publicos, Electoral, etc.). Todos comparten un selector territorial global en tiempo real, un sistema de diseno institucional con soporte nativo para temas claros y oscuros, y un backend liviano en Express para resolver integraciones de CORS o proxies de APIs gubernamentales.
+La aplicacion provee una arquitectura full-stack estructurada y tipada estrictamente con TypeScript. Esta disenada para que un equipo pueda desarrollar de manera simultanea multiples modulos tematicos (Contratacion, Seguridad, Datos Publicos, Electoral y Equipamiento Territorial). Todos comparten un selector territorial global en tiempo real, un sistema de diseno institucional con soporte nativo para temas claros y oscuros, y un backend liviano en Express para resolver integraciones de CORS o proxies de APIs gubernamentales.
 
 ---
 
@@ -29,7 +29,7 @@ La aplicacion provee una arquitectura full-stack estructurada y tipada estrictam
 
 1. **Clonar o ingresar al directorio del repositorio:**
    ```bash
-   cd ciber_dashboard
+   cd Sistema_OSINT
    ```
 
 2. **Instalar dependencias:**
@@ -48,6 +48,23 @@ La aplicacion provee una arquitectura full-stack estructurada y tipada estrictam
    npm run build
    ```
 
+### Scripts y Pipelines ETL Disponibles
+
+El repositorio ya incluye los datasets normalizados en `public/`, por lo que no es obligatorio correr los scripts para utilizar la aplicacion. Sin embargo, para regenerar o actualizar los datos desde sus fuentes oficiales, se dispone de los siguientes comandos:
+
+- **Electoral (TSE):**
+  ```bash
+  npm run etl:tse -- <ruta-al-archivo-zip-del-padron>
+  ```
+- **Contratacion Publica (SICOP):**
+  ```bash
+  node src/modules/procurement/etl/fetchSicop.mjs
+  ```
+- **Datos Publicos (MEIC - PYMES):**
+  ```bash
+  node src/modules/publicData/etl/fetchMeicPymes.mjs
+  ```
+
 ---
 
 ## Arquitectura y Estructura de Carpetas
@@ -56,25 +73,28 @@ El proyecto esta disenado para desacoplar completamente la logica compartida, lo
 
 ```text
 .
-├── public/                  # Archivos estaticos y conjuntos de datos (GeoJSON de mapas, etc.)
-├── scripts/                 # Scripts ETL independientes (procesamiento de padron electoral, etc.)
+├── public/                  # Archivos estaticos y conjuntos de datos procesados
+│   ├── data/                # GeoJSON de cantones y agregados electorales (TSE)
+│   ├── meic-pymes/          # Dataset procesado de PYMES activas (MEIC)
+│   └── sicop/               # Dataset territorializado de compras publicas (SICOP)
+├── scripts/                 # Scripts ETL independientes (procesamiento streaming del padron TSE)
 ├── server/                  # Backend en Express para proxies de integracion (CORS)
 │   ├── index.ts             # Punto de entrada del servidor
-│   └── services/            # Servicios backend (ej. oijService.ts para consultar estadisticas policiales)
+│   └── services/            # Servicios backend (oijService.ts con cache y reintentos)
 └── src/
     ├── components/
     │   ├── common/          # Componentes UI reutilizables (Card, Badge, LoadingState, TerritorialSelector)
     │   └── layout/          # Estructura maestra, navbar y conmutador de temas
-    ├── constants/           # Rutas y metadatos de fuentes oficiales (Activas/Pendientes)
+    ├── constants/           # Rutas y metadatos de fuentes oficiales (Activas/Planificadas)
     ├── context/             # Contextos globales (Territorio y Tema)
     ├── hooks/               # Hooks compartidos (useLocation, useTheme)
     ├── modules/             # Modulos de trabajo funcionalmente independientes
-    │   ├── procurement/     # Modulo: Contratacion Publica (SICOP)
+    │   ├── procurement/     # Modulo: Contratacion Publica (SICOP) - ETL, tipos, servicios y vistas
     │   ├── security/        # Modulo: Seguridad (OIJ) - Mapas interactivos y graficos
-    │   ├── publicData/      # Modulo: Datos Publicos Nacionales
+    │   ├── publicData/      # Modulo: Datos Publicos Nacionales (MEIC / CKAN)
+    │   ├── electoral/       # Modulo: Estadisticas Electorales (TSE)
     │   └── places/          # Modulo: Servicios y Lugares (OpenStreetMap)
-    ├── pages/               # Vistas principales vinculadas a las rutas
-    │   └── ElectoralPage.tsx # Modulo nuevo para visualizacion de estadisticas electorales (TSE)
+    ├── pages/               # Vistas principales vinculadas a las rutas del enrutador
     ├── services/            # Clientes HTTP compartidos (locationService.ts)
     ├── styles/              # Reset, utilidades y variables CSS del sistema de diseno
     ├── types/               # Tipos compartidos
@@ -86,24 +106,50 @@ El proyecto esta disenado para desacoplar completamente la logica compartida, lo
 
 ## Modulos Funcionales
 
-La aplicacion incluye multiples modulos separados para asegurar mantenibilidad y modularidad. Algunos se encuentran en fase de prototipado y otros ya cuentan con integracion de produccion.
+La aplicacion incluye modulos tematicos independientes estructurados bajo una misma arquitectura y sincronizados con el selector territorial global:
 
 1. **Seguridad (OIJ):**
    - *Estado:* Integrado (Fuente Oficial).
-   - *Proposito:* Analisis espacial, temporal y tipologico de la delincuencia.
-   - *Caracteristicas:* Consumo real de los endpoints de estadisticas policiales mediante el servidor proxy Express. Incluye visualizacion mediante Leaflet renderizando poligonos geograficos de Costa Rica que se filtran segun seleccion territorial en sincronia con Recharts.
+   - *Fuente:* Organismo de Investigacion Judicial (OIJ) · Estadisticas Policiales.
+   - *Proposito:* Analisis espacial, temporal y tipologico de incidencias delictivas a nivel nacional.
+   - *Caracteristicas:* Consumo en tiempo real mediante servidor proxy Express que resuelve politicas de CORS, incorpora cache en memoria (TTL 30 min) y gestion de reintentos. Visualizacion cartografica interactiva con Leaflet renderizando poligonos cantonales (`costa_rica_cantones.geojson`) combinada con graficos temporales y tipologicos en Recharts.
 
-2. **Electoral (TSE):**
-   - *Estado:* En desarrollo.
-   - *Proposito:* Visualizacion de distribucion demografica, sexo y centros de votacion basado en cruces asincronos sobre bases de datos abiertas como el padron del TSE. Contiene scripts ETL especiales en Node.js.
+2. **Contratacion Publica (SICOP):**
+   - *Estado:* Integrado (Fuente Oficial).
+   - *Fuente:* SICOP · Ministerio de Hacienda (Observatorio de Compra Publica).
+   - *Proposito:* Fiscalizacion, seguimiento y cruce territorial del egreso del Estado costarricense en compras y contrataciones adjudicadas.
+   - *Caracteristicas:* Pipeline ETL en Node.js que procesa los archivos mensuales de datos abiertos, descargando por rango de bytes unicamente los CSVs requeridos (`ProcedimientoAdjudicacion.csv`, `InstitucionesRegistradas.csv` y `Proveedores.csv`). Normaliza las direcciones contra la Division Territorial Administrativa y genera `sicop-territorial.json`. La interfaz permite alternar entre la perspectiva de la entidad compradora o del proveedor, visualizar rankings comparativos entre territorios, tendencias mensuales, flujos de fondos interprovinciales, desglose por tipo de concurso, busqueda de entidades y panel de procedencia de datos.
 
-3. **Contratacion Publica (SICOP) y Datos Publicos:**
-   - *Estado:* Interfaz estructurada, fuente pendiente de conexion.
-   - *Proposito:* Seguimiento de procedimientos de compra institucional y datos abiertos.
+3. **Datos Publicos (MEIC):**
+   - *Estado:* Integrado (Fuente Oficial).
+   - *Fuente:* Portal Nacional de Datos Abiertos (`datosabiertos.gob.go.cr`, plataforma CKAN).
+   - *Proposito:* Consulta y distribucion territorial del padron de empresas PYME y emprendimientos con condicion activa.
+   - *Caracteristicas:* Pipeline ETL que procesa el padron oficial publicado por el Ministerio de Economia, Industria y Comercio (MEIC), cruzando las ubicaciones con la DTA oficial y generando `meic-pymes.json`. Permite analizar la concentracion empresarial por provincia, canton y distrito, categorizada por tamaño de empresa y sector de actividad economica (CIIU).
 
-4. **Servicios y Lugares (OSM):**
-   - *Estado:* Estructura inicial (Overpass API).
-   - *Proposito:* Mapeo de infraestructura comunitaria gubernamental y de emergencias.
+4. **Electoral (TSE):**
+   - *Estado:* Integrado (Fuente Oficial).
+   - *Fuente:* Tribunal Supremo de Elecciones (TSE) · Padron Electoral Nacional.
+   - *Proposito:* Visualizacion y analisis de la distribucion demografica de electores, proporcion por sexo y cobertura de centros de votacion.
+   - *Caracteristicas:* Script ETL por streaming en TypeScript (`process-tse-electoral-roll.ts`) que procesa los archivos abiertos del padron (`PADRON_COMPLETO.txt` y `distelec.txt`) para generar datos agregados (`tse-electoral-aggregates.json`). Presenta indicadores de electores empadronados, distribucion por sexo, desagregacion de nacionales vs. naturalizados, comparativa cantonal/distrital y tabla de juntas receptoras de votos.
+
+5. **Servicios y Lugares (OSM):**
+   - *Estado:* Estructura base y tipos definidos (Planificado).
+   - *Fuente:* OpenStreetMap / Overpass API.
+   - *Proposito:* Mapeo y consulta de infraestructura comunitaria, educativa, centros de salud y servicios de emergencia.
+   - *Caracteristicas:* Capa de servicios (`placesService.ts`) y modelos tipados (`places.types.ts`) preparados para realizar consultas geoespaciales delimitadas por la seleccion territorial nominal.
+
+---
+
+## Fuentes de Informacion OSINT
+
+| Modulo | Entidad Oficial | Formato / Protocolo | Acceso y Metodo |
+|---|---|---|---|
+| **Territorio** | API Publica Ubicaciones CR (IGN / DTA) | REST JSON | Tiempo real (Cliente HTTP) |
+| **Seguridad** | Organismo de Investigacion Judicial (OIJ) | REST / JSON | Proxy Express en tiempo real con cache |
+| **Contratacion** | SICOP / Ministerio de Hacienda | CSV / ZIP mensual | Pipeline ETL selectivo (HTTP Range) |
+| **Datos Publicos** | Portal Nacional Datos Abiertos (MEIC / CKAN) | XLSX / CKAN API | Pipeline ETL normalizado a JSON |
+| **Electoral** | Tribunal Supremo de Elecciones (TSE) | TXT delimitado / ZIP | Script ETL por streaming |
+| **Servicios** | OpenStreetMap Foundation | Overpass API | Consultas nominales por territorio |
 
 ---
 

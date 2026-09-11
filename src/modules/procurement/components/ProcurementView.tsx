@@ -2,11 +2,9 @@ import React from 'react';
 import {
   AlertTriangle,
   ArrowLeftRight,
-  BookOpen,
   Building2,
   Database,
   HelpCircle,
-  Info,
   Layers,
   Search,
   TrendingUp,
@@ -19,7 +17,7 @@ import { Badge } from '../../../components/common/Badge';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { ErrorState } from '../../../components/common/ErrorState';
 import { SourceInfo } from '../../../components/common/SourceInfo';
-import { GLOSSARY, LENS_LABELS, SICOP_SOURCE } from '../constants/sicopSource';
+import { LENS_LABELS, SICOP_SOURCE } from '../constants/sicopSource';
 import { useProcurement } from '../hooks/useProcurement';
 import {
   formatCrc,
@@ -32,6 +30,7 @@ import { ProcurementRanking } from './ProcurementRanking';
 import { ProcurementTrend } from './ProcurementTrend';
 import { ProcurementFlows } from './ProcurementFlows';
 import { ProcurementEntityTable } from './ProcurementEntityTable';
+import { ProcurementGlossary } from './ProcurementGlossary';
 import { Select, type SelectOption } from './ui/Select';
 import type { ProcurementLens, ProcurementSort } from '../types/procurement.types';
 import './ProcurementView.css';
@@ -54,7 +53,7 @@ export const ProcurementView: React.FC = () => {
     <SectionContainer>
       <PageHeader
         title="Compras del Estado"
-        description="Cuánto dinero egresa el Estado costarricense cuando compra bienes y servicios, en qué parte del país ocurre ese egreso y a qué zonas les llega. Todo sale de SICOP, el sistema oficial donde queda registrada cada compra pública."
+        description="Egreso del Estado costarricense en compras públicas, por provincia y cantón."
         badgeText={dataset ? 'Datos cargados' : 'Cargando datos'}
         badgeVariant={dataset ? 'success' : 'warning'}
       />
@@ -166,13 +165,6 @@ export const ProcurementView: React.FC = () => {
               </div>
             </div>
 
-            <p className="filter-note">
-              <Info className="filter-note__icon" />
-              <span>
-                <strong>Estás viendo: {lens.title.toLowerCase()}.</strong> {lens.description} El
-                buscador y el orden solo afectan la lista grande del final de la página.
-              </span>
-            </p>
           </Card>
 
           {/* Territorio y período */}
@@ -192,10 +184,6 @@ export const ProcurementView: React.FC = () => {
           )}
 
           {/* Números principales */}
-          <p className="section-help">
-            Estos números resumen el territorio que tenés seleccionado. Cambian solos cuando elegís
-            otra provincia o cantón arriba.
-          </p>
           <div className="module-grid-metrics">
             {analysis.indicators.map((indicator) => (
               <Card key={indicator.key} padding="md">
@@ -223,11 +211,6 @@ export const ProcurementView: React.FC = () => {
                 </div>
               }
             >
-              <p className="card-help">
-                Cada barra es un territorio. Entre más larga la barra, más dinero movió ese lugar. La
-                barra <strong>verde</strong> es el territorio que tenés seleccionado arriba. Poné el
-                mouse encima de una barra para ver los números exactos.
-              </p>
               <ProcurementRanking
                 items={analysis.ranking}
                 entityLabel={esComprador ? 'instituciones' : 'empresas'}
@@ -244,24 +227,10 @@ export const ProcurementView: React.FC = () => {
                 </div>
               }
             >
-              <p className="card-help">
-                El dinero que egresa una provincia no siempre se queda ahí: la empresa que gana la
-                compra puede estar en otra parte del país. Cada barra muestra a qué provincia le
-                llegó. Las <strong>verdes</strong> son el dinero que se quedó en la misma provincia.
-              </p>
               <ProcurementFlows
                 flows={analysis.flows}
                 showLocalLegend={analysis.scope.provinciaId !== null}
               />
-              {analysis.retencionLocal !== null && analysis.retencionProvincia && (
-                <p className="card-note">
-                  De cada 100 colones de egreso de las instituciones de{' '}
-                  {analysis.retencionProvincia}, {Math.round(analysis.retencionLocal)} terminan en
-                  empresas de {analysis.retencionProvincia}. Este dato es de toda la provincia, no
-                  del cantón, y solo dice dónde están registradas las empresas: no significa que una
-                  compra sea mejor o peor por eso.
-                </p>
-              )}
             </Card>
           </div>
 
@@ -276,34 +245,7 @@ export const ProcurementView: React.FC = () => {
                 </div>
               }
             >
-              <p className="card-help">
-                Cada punto de la línea es un mes. La línea sube cuando en ese mes se aprobaron
-                compras por más dinero. Un pico muy alto casi siempre es <em>una sola</em> compra
-                enorme, no muchas compras juntas.
-              </p>
               <ProcurementTrend points={analysis.trend} emptyPeriods={dataset.meta.periodosSinDatos} />
-              {(analysis.trendIsPartial || dataset.meta.periodosSinDatos.length > 0) && (
-                <p className="card-note">
-                  {analysis.trendIsPartial && (
-                    <>
-                      El gráfico solo muestra los meses completos. Dejamos por fuera{' '}
-                      {formatInteger(dataset.meta.conteos.lineasFueraDeVentana)} compras más viejas
-                      que el período analizado, porque harían ver meses incompletos como si hubieran
-                      sido flojos.{' '}
-                    </>
-                  )}
-                  {dataset.meta.periodosSinDatos.length > 0 && (
-                    <>
-                      Ojo con{' '}
-                      {dataset.meta.periodosSinDatos
-                        .map((periodo) => formatMonth(`${periodo.slice(0, 4)}-${periodo.slice(4)}`))
-                        .join(' y ')}
-                      : SICOP publicó esos archivos vacíos y sus compras aparecieron después, en los
-                      archivos de meses siguientes. Van marcados con un círculo en el gráfico.
-                    </>
-                  )}
-                </p>
-              )}
             </Card>
           </div>
 
@@ -316,12 +258,6 @@ export const ProcurementView: React.FC = () => {
                 </div>
               }
             >
-              <p className="card-help">
-                El Estado no puede comprar como quiera: según cuánto va a costar, la ley lo obliga a
-                seguir un procedimiento distinto. Las compras grandes van por licitación, que es más
-                lenta pero tiene más controles; las pequeñas y urgentes usan procedimientos más
-                rápidos. Acá se ve cómo se reparte el egreso entre esos tipos.
-              </p>
               {analysis.types.length === 0 ? (
                 <p className="chart-empty">No hay compras registradas en este territorio.</p>
               ) : (
@@ -354,11 +290,6 @@ export const ProcurementView: React.FC = () => {
                 </div>
               }
             >
-              <p className="card-help">
-                Ningún número de esta página es inventado ni estimado: todos salen de datos públicos
-                oficiales. Acá queda escrito de dónde se bajaron y cuándo, para que cualquier
-                persona pueda ir a comprobarlo por su cuenta.
-              </p>
               <dl className="provenance">
                 <div>
                   <dt>Sistema de origen</dt>
@@ -427,12 +358,6 @@ export const ProcurementView: React.FC = () => {
                 </div>
               }
             >
-              <p className="card-help">
-                {esComprador
-                  ? 'Lista de las instituciones públicas del territorio seleccionado, de la que más dinero movió a la que menos. Al lado de cada una aparece su dirección registrada y cuántas compras hizo.'
-                  : 'Lista de las empresas que le vendieron al Estado, de la que más dinero recibió a la que menos. Al lado de cada una aparece dónde está registrada y cuántas compras ganó.'}{' '}
-                Para encontrar una en particular, escribí su nombre en el buscador de arriba.
-              </p>
               <ProcurementEntityTable
                 rows={analysis.entities}
                 entityHeader={esComprador ? 'Institución que compra' : 'Empresa que vende'}
@@ -440,29 +365,10 @@ export const ProcurementView: React.FC = () => {
             </Card>
           </div>
 
-          {/* Glosario */}
+          {/* Glosario plegable, con definicion corta al pasar el mouse */}
           <div className="module-main-area">
-            <Card
-              header={
-                <div className="area-header">
-                  <h3 className="area-title">¿Qué significa cada palabra?</h3>
-                  <span className="area-tag">
-                    <BookOpen className="area-tag__icon" /> Glosario
-                  </span>
-                </div>
-              }
-            >
-              <p className="card-help">
-                Palabras que aparecen en esta página y que nadie tiene por qué saberse de memoria.
-              </p>
-              <dl className="glossary">
-                {GLOSSARY.map((entry) => (
-                  <div key={entry.term} className="glossary__item">
-                    <dt>{entry.term}</dt>
-                    <dd>{entry.definition}</dd>
-                  </div>
-                ))}
-              </dl>
+            <Card padding="sm">
+              <ProcurementGlossary />
             </Card>
           </div>
 

@@ -1,6 +1,7 @@
 import React from 'react';
-import { MapPin, X, Loader2, RotateCcw } from 'lucide-react';
+import { MapPin, X, RotateCcw } from 'lucide-react';
 import { useLocation } from '../../hooks/useLocation';
+import { Dropdown } from './Dropdown';
 import './TerritorialSelector.css';
 
 interface TerritorialSelectorProps {
@@ -30,20 +31,32 @@ export const TerritorialSelector: React.FC<TerritorialSelectorProps> = ({
     retryProvinces,
   } = useLocation();
 
-  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleProvinceChange = (val: string) => {
     void selectProvince(val === '' ? null : val);
   };
 
-  const handleCantonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleCantonChange = (val: string) => {
     void selectCanton(val === '' ? null : val);
   };
 
-  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleDistrictChange = (val: string) => {
     selectDistrict(val === '' ? null : val);
   };
+
+  const provinceOptions = [
+    { value: '', label: '— Toda Costa Rica —' },
+    ...provinces.map((prov) => ({ value: prov.id, label: prov.name })),
+  ];
+
+  const cantonOptions = [
+    { value: '', label: '— Todos los cantones —' },
+    ...cantons.map((cant) => ({ value: cant.id, label: cant.name })),
+  ];
+
+  const districtOptions = [
+    { value: '', label: '— Todos los distritos —' },
+    ...districts.map((dist) => ({ value: dist.id, label: dist.name })),
+  ];
 
   const hasSelection = Boolean(selectedProvince || selectedCanton || selectedDistrict);
 
@@ -77,78 +90,55 @@ export const TerritorialSelector: React.FC<TerritorialSelectorProps> = ({
 
       <div className="territorial-selector__fields">
         {/* Selector de Provincia */}
-        <div className="select-wrapper">
-          <select
-            id="global-province-select"
-            value={selectedProvince ? selectedProvince.id : ''}
-            onChange={handleProvinceChange}
-            disabled={isLoadingProvinces}
-            aria-label="Seleccionar Provincia"
-            className="selector-input"
-          >
-            <option value="">
-              {isLoadingProvinces ? 'Cargando provincias...' : '— Toda Costa Rica —'}
-            </option>
-            {provinces.map((prov) => (
-              <option key={prov.id} value={prov.id}>
-                {prov.name}
-              </option>
-            ))}
-          </select>
-          {isLoadingProvinces && <Loader2 className="select-spinner" />}
-        </div>
+        <Dropdown
+          id="global-province-select"
+          value={selectedProvince ? selectedProvince.id : ''}
+          onChange={handleProvinceChange}
+          options={provinceOptions}
+          placeholder={isLoadingProvinces ? 'Cargando provincias...' : '— Toda Costa Rica —'}
+          disabled={isLoadingProvinces}
+          isLoading={isLoadingProvinces}
+          ariaLabel="Seleccionar Provincia"
+          enableSearchThreshold={5}
+        />
 
         {/* Selector de Cantón */}
-        <div className="select-wrapper">
-          <select
-            id="global-canton-select"
-            value={selectedCanton ? selectedCanton.id : ''}
-            onChange={handleCantonChange}
-            disabled={!selectedProvince || isLoadingCantons}
-            aria-label="Seleccionar Cantón"
-            className="selector-input"
-          >
-            <option value="">
-              {!selectedProvince
-                ? 'Cantón (seleccione provincia)'
-                : isLoadingCantons
-                ? 'Cargando cantones...'
-                : '— Todos los cantones —'}
-            </option>
-            {cantons.map((cant) => (
-              <option key={cant.id} value={cant.id}>
-                {cant.name}
-              </option>
-            ))}
-          </select>
-          {isLoadingCantons && <Loader2 className="select-spinner" />}
-        </div>
+        <Dropdown
+          id="global-canton-select"
+          value={selectedCanton ? selectedCanton.id : ''}
+          onChange={handleCantonChange}
+          options={cantonOptions}
+          placeholder={
+            !selectedProvince
+              ? 'Cantón (seleccione provincia)'
+              : isLoadingCantons
+              ? 'Cargando cantones...'
+              : '— Todos los cantones —'
+          }
+          disabled={!selectedProvince || isLoadingCantons}
+          isLoading={isLoadingCantons}
+          ariaLabel="Seleccionar Cantón"
+          enableSearchThreshold={8}
+        />
 
         {/* Selector de Distrito */}
-        <div className="select-wrapper">
-          <select
-            id="global-district-select"
-            value={selectedDistrict ? selectedDistrict.id : ''}
-            onChange={handleDistrictChange}
-            disabled={!selectedCanton || isLoadingDistricts}
-            aria-label="Seleccionar Distrito"
-            className="selector-input"
-          >
-            <option value="">
-              {!selectedCanton
-                ? 'Distrito (seleccione cantón)'
-                : isLoadingDistricts
-                ? 'Cargando distritos...'
-                : '— Todos los distritos —'}
-            </option>
-            {districts.map((dist) => (
-              <option key={dist.id} value={dist.id}>
-                {dist.name}
-              </option>
-            ))}
-          </select>
-          {isLoadingDistricts && <Loader2 className="select-spinner" />}
-        </div>
+        <Dropdown
+          id="global-district-select"
+          value={selectedDistrict ? selectedDistrict.id : ''}
+          onChange={handleDistrictChange}
+          options={districtOptions}
+          placeholder={
+            !selectedCanton
+              ? 'Distrito (seleccione cantón)'
+              : isLoadingDistricts
+              ? 'Cargando distritos...'
+              : '— Todos los distritos —'
+          }
+          disabled={!selectedCanton || isLoadingDistricts}
+          isLoading={isLoadingDistricts}
+          ariaLabel="Seleccionar Distrito"
+          enableSearchThreshold={8}
+        />
 
         {/* Botón de limpiar selección */}
         {hasSelection && (
