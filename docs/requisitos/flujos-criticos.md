@@ -21,9 +21,9 @@ Cada flujo separa tres tipos de información. No deben mezclarse.
 |---|---|---|
 | **Regla aprobada** | Requisito que el equipo aceptó. Las pruebas lo validan y una diferencia con el código es un hallazgo. | Criterios de aceptación con estado de aprobación **Aprobado**. |
 | **Comportamiento observado** | Lo que hace el código hoy, leído en el commit indicado, con referencia al archivo. No implica que sea correcto. | Subsección "Comportamiento observado" de cada flujo. |
-| **Sugerencia pendiente de validar** | Idea de cómo cumplir un criterio. No es requisito hasta que alguien la apruebe. | Sección 5. |
+| **Sugerencia pendiente de validar** | Idea de cómo cumplir un criterio. No es requisito hasta que alguien la apruebe. | Sección 6. |
 
-**Estado de aprobación de los criterios.** Ningún criterio está aprobado todavía. Todos están como **Propuesto** y pasan a **Aprobado** cuando el revisor (Integrante 2) apruebe el PR de este documento. Los criterios que dependen de una duda abierta (sección 6) quedan **Bloqueados por D-xx** hasta que el responsable de esa duda la resuelva.
+**Estado de aprobación de los criterios.** Ningún criterio está aprobado todavía. Todos están como **Propuesto** y pasan a **Aprobado** cuando el revisor (Integrante 2) apruebe el PR de este documento. Los criterios que dependen de una duda abierta (sección 7) quedan **Bloqueados por D-xx** hasta que el responsable de esa duda la resuelva.
 
 **Columna "Código hoy".** Indica si el comportamiento observado cumple el criterio: **Cumple**, **Parcial**, **No cumple** o **Sin definir** (depende de una duda). Se determinó **solo por lectura estática del código**: nada se ejecutó. La confirmación corresponde a las pruebas del 4.2. Un criterio que hoy no se cumple **no se ajusta para que coincida con el código**: es un hallazgo para el registro del 7.5.
 
@@ -201,3 +201,52 @@ Permite buscar empresas y proveedores **por nombre o por identificación** (bús
 | FLU-03-CA07 | [Uso indebido] | **Dado** que la API de la DTA devuelve una estructura inesperada (un arreglo, valores que no son texto) o nombres con HTML o script, **cuando** se carga el selector, **entonces** la respuesta con estructura inválida se rechaza con un error y los nombres se muestran como texto, sin ejecutarse. | Cumple | Propuesto |
 | FLU-03-CA08 | [Uso indebido] | **Dado** un GeoJSON cuyos nombres de provincia o cantón contienen HTML o script, **cuando** el visitante pasa el cursor sobre el mapa de seguridad, **entonces** el tooltip muestra el nombre como texto y no interpreta el HTML. | No cumple | Propuesto |
 | FLU-03-CA09 | [Uso indebido] | **Dado** un visitante que intenta perfilar a una persona física buscando por cédula o descargando el dataset completo, **cuando** consulta el buscador o el JSON publicado, **entonces** solo obtiene los datos personales que la regla de D-01 autorice. | Sin definir (hoy se muestra y se descarga todo) | Bloqueado por D-01 |
+
+---
+
+## 6. Sugerencias pendientes de validar
+
+Las siguientes son ideas para cumplir los criterios que hoy no se cumplen o se cumplen parcialmente. **No son requisitos ni decisiones tomadas.** Implementarlas implica cambiar código de la aplicación, que queda fuera del alcance de este ítem. Corresponde al Integrante 2 (1.2, amenazas) y al equipo decidir cuáles se adoptan.
+
+| ID | Sugerencia | Criterios relacionados |
+|---|---|---|
+| SUG-01 | Validar los parámetros de `/api/security/*` con una lista blanca: `year` de 4 dígitos dentro del rango que defina D-03; IDs territoriales numéricos y de longitud acotada; `crimeType` dentro de los valores de `delitoMap` o `all`; rechazar los parámetros repetidos. | FLU-01-CA05, CA08 |
+| SUG-02 | Agregar un timeout a las llamadas salientes al OIJ y revisar `response.ok` y `Array.isArray` en `/stats`, para responder con error en lugar de mostrar ceros. | FLU-01-CA06, CA07 |
+| SUG-03 | Usar una caché con tamaño máximo (por ejemplo LRU) que elimine las entradas vencidas, y aplicar limitación de tasa por IP en `/api`. | FLU-01-CA09, CA10 |
+| SUG-04 | Restringir `cors()` al origen o los orígenes del frontend desplegado, según lo que se decida en D-02. | FLU-01-CA12 |
+| SUG-05 | Aplicar en los ETL de MEIC y SICOP una verificación de privacidad equivalente a la del TSE, que revise también los **valores** (por ejemplo, el patrón de cédula física de 9 dígitos y de DIMEX de 12) según la regla que se defina en D-01. | FLU-02-CA06, FLU-03-CA09 |
+| SUG-06 | Definir límites de tamaño para los archivos ZIP y XLSX y para sus miembros, y procesar `distelec.txt` por streaming. | FLU-02-CA07 |
+| SUG-07 | Mantener una lista blanca de dominios oficiales para las descargas de los ETL y restringir `--salida` al directorio `public/`. | FLU-02-CA08, CA09 |
+| SUG-08 | Ejecutar `verifyDataset.mjs` en CI cuando un PR modifique `public/**`, y registrar en `meta` el hash SHA-256 del archivo de origen. | FLU-02-CA10 |
+| SUG-09 | Construir el tooltip del mapa como un nodo DOM con `textContent`, o escapar `NAME_1` y `NAME_2` antes de pasarlos a `bindTooltip`. | FLU-03-CA08 |
+| SUG-10 | Crear un verificador de dataset para el TSE y guardar en `meta` los `CODELEC` sin correspondencia. | FLU-02-CA05 |
+
+---
+
+## 7. Dudas para decisión humana
+
+Estas preguntas afectan permisos o comportamiento esperado. **No se asumió ninguna respuesta.** Los criterios marcados como "Bloqueado por D-xx" no pueden aprobarse hasta que el responsable registre la decisión. La decisión se anota en este documento, en la columna "Decisión", junto con la fecha y quién la tomó.
+
+| ID | Pregunta | Afecta a | Responsable | Decisión |
+|---|---|---|---|---|
+| D-01 | ¿Se permite publicar la identificación y el nombre de **personas físicas** (cédula de 9 dígitos, DIMEX de 12) en los datasets de MEIC y SICOP y en el buscador? ¿Se publican solo personas jurídicas, se enmascaran las cédulas físicas o se publican completas porque la fuente ya es pública? ¿Hay que consultarlo con el profesor? | FLU-02-CA06, FLU-03-CA09 | Integrante 1 (requisitos), con la decisión del equipo | Pendiente |
+| D-02 | ¿La API `/api/security/*` es solo para el frontend del observatorio o es pública para terceros? ¿Qué orígenes debe aceptar CORS en el ambiente desplegado? | FLU-01-CA12 | Integrante 2 (arquitectura y permisos), con el Integrante 4 (despliegue) | Pendiente |
+| D-03 | ¿Qué rango de años es válido en la consulta al OIJ? ¿Los últimos 5, como ofrece la interfaz, o desde el primer año con datos? ¿Se acepta el año en curso con datos parciales? | FLU-01-CA05 | Integrante 1 (requisitos) | Pendiente |
+| D-04 | ¿Cuáles son los límites aceptables? Solicitudes por cliente y por minuto en `/api`, tamaño máximo de la caché, timeout de las llamadas al OIJ y tamaño máximo de los archivos de entrada de los ETL. | FLU-01-CA06, CA09, CA10, FLU-02-CA07 | Integrante 2 (amenazas y medidas) | Pendiente |
+| D-05 | ¿Quién está autorizado a ejecutar los ETL y a fusionar cambios en `public/**`? ¿Se exige correr `verifyDataset` (o un equivalente para el TSE) y obtener la aprobación del revisor antes de fusionar? | FLU-02-CA10 | Integrante 2 (tabla rol → recurso → acción), con el equipo | Pendiente |
+| D-06 | Hoy no hay sesión ni roles: todo es público y anónimo. ¿Se mantiene así en la siguiente entrega, o hay alguna acción prevista que deba requerir sesión (por ejemplo, ejecutar ETL o administrar datasets desde la aplicación)? | Los tres flujos y la tabla de permisos del 1.2 | Equipo | Pendiente |
+| D-07 | ¿Qué dominios se consideran fuentes oficiales para los ETL? ¿Se permite seguir cambiando la URL de origen con `SICOP_CONTAINER_URL` y `DTA_BASE_URL`? | FLU-02-CA08 | Integrante 2 | Pendiente |
+| D-08 | Si el OIJ falla y existe un resultado en caché ya vencido, ¿se muestra ese resultado indicando que está desactualizado o se muestra un error? | FLU-01-CA06 | Integrante 1 (requisitos) | Pendiente |
+| D-09 | ¿Dónde puede guardarse el ZIP crudo del padrón del TSE mientras se procesa, quién puede tenerlo y si debe borrarse después? Hoy solo se sabe que `.gitignore` excluye `*.zip`. | FLU-02 | Equipo | Pendiente |
+
+---
+
+## 8. Resumen de cobertura
+
+| Flujo | Éxito | Error | Uso indebido | Total | Cumple hoy | Parcial | No cumple | Sin definir |
+|---|---|---|---|---|---|---|---|---|
+| FLU-01 | 3 | 4 | 5 | 12 | 5 | 1 | 5 | 1 |
+| FLU-02 | 2 | 3 | 5 | 10 | 4 | 2 | 3 | 1 |
+| FLU-03 | 2 | 3 | 4 | 9 | 7 | 0 | 1 | 1 |
+
+Los estados "Código hoy" se obtuvieron por lectura estática y deben confirmarse con las pruebas del 4.2. Los criterios en estado "No cumple" o "Parcial" son candidatos a hallazgos para el registro del 7.5.
