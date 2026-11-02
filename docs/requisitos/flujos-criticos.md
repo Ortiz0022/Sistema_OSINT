@@ -153,3 +153,51 @@ Lo que produce el ETL se publica tal cual en `public/`, queda en git y cualquier
 | FLU-02-CA08 | [Uso indebido] | **Dado** que la URL de origen se redirige a un dominio no oficial (por variable de entorno o porque CKAN devuelve una URL de otro dominio), **cuando** se ejecuta el ETL, **entonces** el proceso rechaza la descarga y termina con error. | No cumple | Bloqueado por D-07 |
 | FLU-02-CA09 | [Uso indebido] | **Dado** un valor de `--salida` que apunta fuera de `public/` (por ejemplo `../../`, `src/...` o `server/...`), **cuando** se ejecuta el ETL, **entonces** el proceso lo rechaza sin escribir nada. | No cumple | Propuesto |
 | FLU-02-CA10 | [Uso indebido] | **Dado** un cambio en un dataset de `public/` que no fue generado por el ETL o que no pasó la verificación, **cuando** se propone en un PR, **entonces** el cambio no se puede fusionar sin la verificación y la aprobación definidas en D-05. | Sin definir | Bloqueado por D-05 |
+
+---
+
+## 5. FLU-03 — Consulta territorial y búsqueda de entidades en el navegador
+
+### Por qué es crítico
+
+Es el flujo principal del usuario final y no requiere sesión. Combina tres fuentes que el navegador trata como confiables:
+
+1. la API de un tercero (`ubicaciones.paginasweb.cr`) para provincias, cantones y distritos;
+2. los datasets estáticos de `public/` que genera FLU-02;
+3. el texto que escribe el visitante en los buscadores.
+
+Permite buscar empresas y proveedores **por nombre o por identificación** (búsqueda por subcadena) y muestra la identificación en la tabla. Si alguna fuente se manipula o el texto se interpreta como HTML, se puede ejecutar código en el navegador del visitante (XSS) o alterar lo que se le muestra. Si los datasets contienen personas físicas (ver FLU-02 y D-01), el buscador facilita perfilarlas.
+
+### Actores, objetivo y resultado esperado
+
+| | |
+|---|---|
+| **Actor principal** | Visitante anónimo en `/`, `/contratacion-publica`, `/datos-publicos`, `/padron-electoral` o `/seguridad`. |
+| **Sistemas externos** | API de la DTA (`ubicaciones.paginasweb.cr`), que se consulta directamente desde el navegador. |
+| **Fuentes internas** | `public/sicop/sicop-territorial.json`, `public/meic-pymes/meic-pymes.json`, `public/data/tse-electoral-aggregates.json` y `public/data/costa_rica_cantones.geojson`. |
+| **Objetivo** | Elegir un territorio (provincia, cantón o distrito), ver los indicadores de cada módulo filtrados por ese territorio y buscar entidades por nombre o identificación. |
+| **Resultado esperado** | Los módulos muestran datos coherentes con el territorio elegido. Las búsquedas devuelven coincidencias o un estado vacío claro. Una falla de cualquier fuente se muestra como mensaje de error sin romper la aplicación. Ningún dato externo ni ningún texto del visitante se ejecuta como código. |
+
+### Comportamiento observado (commit `c7b3cab`)
+
+- **OBS-03-1:** No hay autenticación: todas las rutas son públicas. La única preferencia que se guarda en el navegador es el tema (claro u oscuro) en `localStorage`.
+- **OBS-03-2:** El servicio territorial aplica `encodeURIComponent` a los IDs, usa un timeout de 8 s, valida que la respuesta sea un objeto, descarta los valores que no son texto y guarda los resultados en una caché en memoria ([locationService.ts:17](../../src/services/locationService.ts#L17), [:41](../../src/services/locationService.ts#L41), [:95](../../src/services/locationService.ts#L95)). Si falla, el selector muestra el error y un botón para reintentar ([TerritorialSelector.tsx:63-70](../../src/components/common/TerritorialSelector.tsx#L63-L70)).
+- **OBS-03-3:** Los servicios de SICOP y MEIC descargan su dataset completo con un timeout de 15 s y hasta 2 intentos. Validan la estructura (`assertDataset`) y distinguen tres tipos de falla: `no_publicado` (404), `red` y `formato`, que se muestran con `ErrorState` ([procurementService.ts:49](../../src/modules/procurement/services/procurementService.ts#L49), [:107](../../src/modules/procurement/services/procurementService.ts#L107); [publicDataService.ts:47](../../src/modules/publicData/services/publicDataService.ts#L47), [:79](../../src/modules/publicData/services/publicDataService.ts#L79)).
+- **OBS-03-4:** La búsqueda normaliza el texto (quita tildes y pasa a minúsculas) y compara con `includes` contra el nombre o la identificación. No usa expresiones regulares construidas con la entrada del visitante ([publicDataAnalytics.ts:272](../../src/modules/publicData/services/publicDataAnalytics.ts#L272), [procurementAnalytics.ts:343](../../src/modules/procurement/services/procurementAnalytics.ts#L343)). Si no hay resultados, se muestra un estado vacío ([PublicDataTable.tsx:26](../../src/modules/publicData/components/PublicDataTable.tsx#L26)).
+- **OBS-03-5:** Los datos se muestran con JSX, que React escapa automáticamente. No hay `dangerouslySetInnerHTML` en `src/`.
+- **OBS-03-6:** **Excepción:** el mapa de seguridad arma el tooltip de Leaflet concatenando HTML con `NAME_1` y `NAME_2` del GeoJSON (`` `<strong>${provName}</strong><br/>${cantName}` ``). Leaflet interpreta ese texto como HTML ([SecurityMap.tsx:68](../../src/modules/security/components/SecurityMap.tsx#L68)). El GeoJSON es un archivo estático del repositorio.
+- **OBS-03-7:** Cualquier visitante puede descargar directamente los datasets completos, incluidas las identificaciones y los nombres, sin pasar por la interfaz.
+
+### Criterios de aceptación
+
+| ID | Tipo | Criterio | Código hoy | Aprobación |
+|---|---|---|---|---|
+| FLU-03-CA01 | [Éxito] | **Dado** que la API de la DTA y los datasets están disponibles, **cuando** el visitante elige una provincia, un cantón y un distrito, **entonces** las listas se cargan en el orden oficial y cada módulo muestra indicadores filtrados por ese territorio. | Cumple | Propuesto |
+| FLU-03-CA02 | [Éxito] | **Dado** un territorio elegido, **cuando** el visitante escribe parte de un nombre (con o sin tildes) o de una identificación en el buscador de Contratación o de Datos Públicos, **entonces** se listan solo las entidades de ese territorio que coinciden. | Cumple | Propuesto |
+| FLU-03-CA03 | [Error] | **Dado** que la API de la DTA no responde en 8 s o devuelve un error HTTP, **cuando** se carga el selector, **entonces** se muestra un mensaje de error con la opción de reintentar y el resto de la aplicación sigue funcionando. | Cumple | Propuesto |
+| FLU-03-CA04 | [Error] | **Dado** que un dataset no existe (404), no llega por la red o no tiene la estructura esperada, **cuando** se abre su módulo, **entonces** se muestra un mensaje distinto según la causa (no publicado, red o formato) y el módulo no se rompe a mitad del renderizado. | Cumple | Propuesto |
+| FLU-03-CA05 | [Error] | **Dado** una búsqueda sin coincidencias en el territorio elegido, **cuando** se aplica el filtro, **entonces** se muestra un estado vacío que explica cómo ampliar la búsqueda. | Cumple | Propuesto |
+| FLU-03-CA06 | [Uso indebido] | **Dado** un texto de búsqueda con HTML o JavaScript (por ejemplo `<img src=x onerror=alert(1)>`) o con caracteres especiales de expresiones regulares (`.*(`), **cuando** se aplica el filtro, **entonces** se trata como texto literal, no se ejecuta nada y la búsqueda no genera error. | Cumple | Propuesto |
+| FLU-03-CA07 | [Uso indebido] | **Dado** que la API de la DTA devuelve una estructura inesperada (un arreglo, valores que no son texto) o nombres con HTML o script, **cuando** se carga el selector, **entonces** la respuesta con estructura inválida se rechaza con un error y los nombres se muestran como texto, sin ejecutarse. | Cumple | Propuesto |
+| FLU-03-CA08 | [Uso indebido] | **Dado** un GeoJSON cuyos nombres de provincia o cantón contienen HTML o script, **cuando** el visitante pasa el cursor sobre el mapa de seguridad, **entonces** el tooltip muestra el nombre como texto y no interpreta el HTML. | No cumple | Propuesto |
+| FLU-03-CA09 | [Uso indebido] | **Dado** un visitante que intenta perfilar a una persona física buscando por cédula o descargando el dataset completo, **cuando** consulta el buscador o el JSON publicado, **entonces** solo obtiene los datos personales que la regla de D-01 autorice. | Sin definir (hoy se muestra y se descarga todo) | Bloqueado por D-01 |
