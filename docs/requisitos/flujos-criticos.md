@@ -101,3 +101,55 @@ Además, el CSV del OIJ que procesa `/details` trae por registro la edad, el sex
 | FLU-01-CA10 | [Uso indebido] | **Dado** un mismo cliente que supera el volumen de solicitudes permitido, **cuando** sigue llamando a los endpoints, **entonces** el sistema rechaza las solicitudes que exceden el límite y no genera más llamadas al OIJ por ellas. | No cumple | Bloqueado por D-04 (límite) |
 | FLU-01-CA11 | [Uso indebido] | **Dado** un cliente que llama directamente a `/details` buscando datos de víctimas individuales, **cuando** recibe la respuesta, **entonces** esta contiene solo conteos agregados por delito y subdelito, sin edad, sexo, nacionalidad, fecha, hora ni ningún otro dato de un registro individual. | Cumple | Propuesto |
 | FLU-01-CA12 | [Uso indebido] | **Dado** una página web de un origen distinto al frontend del observatorio, **cuando** intenta consumir la API desde el navegador de un visitante, **entonces** el sistema actúa según la política de orígenes que se defina en D-02. | Sin definir (hoy acepta cualquier origen) | Bloqueado por D-02 |
+
+---
+
+## 4. FLU-02 — Generación y publicación de datasets por ETL
+
+### Por qué es crítico
+
+Es el único flujo que toca **datos personales en origen**:
+
+- El ZIP del Padrón Nacional Electoral trae cédula, nombre, apellidos y fecha de caducidad de unos 3,7 millones de personas.
+- El dataset del MEIC publica identificación y nombre de cada pyme. Unas 23 identificaciones tienen formato de cédula física (9 dígitos) y unas 527 tienen formato DIMEX (12 dígitos). Es decir, probablemente hay personas físicas expuestas. Esto se infirió por el formato del número y no se verificó contra el registro civil.
+- El dataset de SICOP publica cédula, nombre y monto de los proveedores. Hoy los 400 proveedores publicados tienen identificación de 10 dígitos (formato de persona jurídica), pero el ETL no lo garantiza.
+
+Lo que produce el ETL se publica tal cual en `public/`, queda en git y cualquiera puede descargarlo. Una falla puede filtrar datos personales de forma permanente: quedan en el historial de git y en cachés. También puede publicar cifras alteradas que la ciudadanía tomaría como oficiales. Además, el ETL procesa archivos externos (ZIP y XLSX) que podrían venir manipulados.
+
+### Actores, objetivo y resultado esperado
+
+| | |
+|---|---|
+| **Actor principal** | Integrante del equipo que opera el ETL de una fuente y lo ejecuta localmente con `npm run etl:tse` o `node .../etl/*.mjs`. |
+| **Actor secundario** | Visitante anónimo que descarga los JSON publicados (`/data/*.json`, `/meic-pymes/*.json`, `/sicop/*.json`). |
+| **Sistemas externos** | ZIP del padrón del TSE (descarga manual); portal CKAN de datos abiertos (MEIC); contenedor público del Observatorio de Compra Pública (SICOP); API de la DTA (`ubicaciones.paginasweb.cr`). |
+| **Objetivo** | Transformar las fuentes oficiales en datasets agregados, conciliados con la División Territorial Administrativa y listos para el frontend. |
+| **Resultado esperado** | Un JSON en `public/` con metadatos de fuente y fecha, estructura válida y solo los datos personales que el equipo haya autorizado (ver D-01). Si algo falla, el dataset publicado anteriormente queda intacto. |
+
+### Comportamiento observado (commit `c7b3cab`)
+
+- **OBS-02-1 (TSE):** El script recibe la ruta del ZIP por argumento. Si falta el argumento, el archivo, `distelec.txt` o el archivo principal del padrón, termina con `exit 1` antes de escribir nada ([process-tse-electoral-roll.ts:29-82](../../scripts/process-tse-electoral-roll.ts#L29-L82)).
+- **OBS-02-2 (TSE):** De cada línea del padrón solo usa `CODELEC`. Un comentario del código dice que los datos personales "NUNCA se guardan". La salida incluye `containsPersonalData: false` ([:173](../../scripts/process-tse-electoral-roll.ts#L173)).
+- **OBS-02-3 (TSE):** Antes de escribir la salida, una expresión regular revisa que el JSON no tenga **llaves** llamadas `cedula`, `nombre`, `apellido(s)`, `nombres` o `fechacaduc`. Si encuentra alguna, termina con `exit 1` ([:181-186](../../scripts/process-tse-electoral-roll.ts#L181-L186)). La revisión solo mira los nombres de las llaves, no los valores.
+- **OBS-02-4 (TSE):** `distelec.txt` se carga completo en memoria con `.buffer()` ([:49](../../scripts/process-tse-electoral-roll.ts#L49)), y no hay límites de tamaño para el ZIP ni para sus miembros. Si un `CODELEC` no tiene correspondencia, solo se muestra una advertencia en consola ([:128](../../scripts/process-tse-electoral-roll.ts#L128)) y esa advertencia no queda en los metadatos de salida.
+- **OBS-02-5 (MEIC):** El ETL descarga el recurso desde la URL que devuelve el propio CKAN (`resources[0].url`) sin verificar el dominio ([fetchMeicPymes.mjs:61](../../src/modules/publicData/etl/fetchMeicPymes.mjs#L61)). Publica `identificacion` y `nombre` de cada empresa ([:169](../../src/modules/publicData/etl/fetchMeicPymes.mjs#L169)) y registra en `meta` las advertencias de conciliación territorial.
+- **OBS-02-6 (SICOP):** La URL del contenedor puede cambiarse con la variable `SICOP_CONTAINER_URL` ([fetchSicop.mjs:41](../../src/modules/procurement/etl/fetchSicop.mjs#L41)) y la de la DTA con `DTA_BASE_URL` ([procurement/etl/territory.mjs:23](../../src/modules/procurement/etl/territory.mjs#L23)). El lector ZIP rechaza ZIP64 y los métodos de compresión no soportados ([sicopZip.mjs:93](../../src/modules/procurement/etl/sicopZip.mjs#L93)). Publica `cedula`, `nombre` y `monto` de instituciones y proveedores.
+- **OBS-02-7 (MEIC y SICOP):** El argumento `--salida` acepta cualquier ruta, que se resuelve desde la raíz del proyecto sin restringirla a `public/` ([fetchMeicPymes.mjs:279](../../src/modules/publicData/etl/fetchMeicPymes.mjs#L279), [fetchSicop.mjs:441](../../src/modules/procurement/etl/fetchSicop.mjs#L441)). Los errores se capturan y terminan con `exitCode = 1`. El archivo solo se escribe al final del proceso.
+- **OBS-02-8:** Existen los scripts `verifyDataset.mjs` para MEIC y SICOP, que revisan la estructura, la consistencia de los totales y la unicidad de las identificaciones. Se ejecutan a mano: no hay nada que obligue a correrlos antes de publicar. El TSE no tiene un verificador equivalente.
+- **OBS-02-9:** No se registran hashes ni firmas del archivo de origen ni del dataset generado. La única evidencia de origen es lo que guarda `meta`.
+- **OBS-02-10:** `.gitignore` excluye `*.zip`, `data/raw/`, `data/temp/` y `data_tse_temp/`, así que el ZIP crudo del padrón no se versiona si se deja en esas rutas.
+
+### Criterios de aceptación
+
+| ID | Tipo | Criterio | Código hoy | Aprobación |
+|---|---|---|---|---|
+| FLU-02-CA01 | [Éxito] | **Dado** el ZIP oficial del padrón del TSE con `distelec.txt` y el archivo principal, **cuando** el operador ejecuta `npm run etl:tse -- <zip>`, **entonces** se genera `public/data/tse-electoral-aggregates.json` con el conteo de electores por provincia, cantón y distrito, `recordsProcessed`, `containsPersonalData: false`, y sin ninguna cédula, nombre, apellido ni fecha de caducidad. | Cumple | Propuesto |
+| FLU-02-CA02 | [Éxito] | **Dado** que las fuentes MEIC o SICOP están disponibles, **cuando** el operador ejecuta el ETL y luego el `verifyDataset.mjs` correspondiente, **entonces** el dataset queda escrito en su ruta de `public/`, todas las verificaciones dan `OK` y `meta` indica la fuente, la entidad, la URL de origen y la fecha de generación. | Cumple | Propuesto |
+| FLU-02-CA03 | [Error] | **Dado** que falta el argumento del ZIP, el archivo no existe o el ZIP no contiene `distelec.txt` o el archivo principal, **cuando** se ejecuta el ETL del TSE, **entonces** se muestra un mensaje claro, el proceso termina con un código distinto de 0 y el dataset publicado anteriormente no se modifica. | Cumple | Propuesto |
+| FLU-02-CA04 | [Error] | **Dado** que una fuente remota no responde, devuelve un error HTTP o cambió de formato (por ejemplo, CKAN con `success: false`, un ZIP64 o un miembro faltante), **cuando** se ejecuta el ETL de MEIC o SICOP, **entonces** el proceso termina con un código distinto de 0 sin sobrescribir el dataset publicado. | Cumple | Propuesto |
+| FLU-02-CA05 | [Error] | **Dado** registros que no concilian con la DTA (un `CODELEC` sin correspondencia o un distrito con nombre histórico), **cuando** se genera el dataset, **entonces** la cantidad de registros afectados queda registrada en los metadatos del dataset publicado y no solo en la consola. | Parcial: MEIC sí; TSE solo en consola | Propuesto |
+| FLU-02-CA06 | [Uso indebido] | **Dado** que el dataset de salida contendría datos personales no autorizados según D-01 (por ejemplo, cédulas de personas físicas o nombres de personas), **cuando** se ejecuta cualquier ETL, **entonces** el proceso aborta con un código distinto de 0 y no escribe el archivo. | Parcial: solo el TSE, y solo revisa llaves; MEIC y SICOP no tienen control | Bloqueado por D-01 |
+| FLU-02-CA07 | [Uso indebido] | **Dado** un archivo de entrada manipulado o desproporcionado (una bomba ZIP, un `distelec.txt` gigante, un XLSX malformado o un ZIP con miembros inesperados), **cuando** se procesa, **entonces** el ETL falla de forma controlada al superar un límite definido, sin agotar la memoria de la máquina y sin escribir una salida parcial. | No cumple: no hay límites de tamaño | Bloqueado por D-04 (límites) |
+| FLU-02-CA08 | [Uso indebido] | **Dado** que la URL de origen se redirige a un dominio no oficial (por variable de entorno o porque CKAN devuelve una URL de otro dominio), **cuando** se ejecuta el ETL, **entonces** el proceso rechaza la descarga y termina con error. | No cumple | Bloqueado por D-07 |
+| FLU-02-CA09 | [Uso indebido] | **Dado** un valor de `--salida` que apunta fuera de `public/` (por ejemplo `../../`, `src/...` o `server/...`), **cuando** se ejecuta el ETL, **entonces** el proceso lo rechaza sin escribir nada. | No cumple | Propuesto |
+| FLU-02-CA10 | [Uso indebido] | **Dado** un cambio en un dataset de `public/` que no fue generado por el ETL o que no pasó la verificación, **cuando** se propone en un PR, **entonces** el cambio no se puede fusionar sin la verificación y la aprobación definidas en D-05. | Sin definir | Bloqueado por D-05 |
