@@ -37,7 +37,7 @@ describe('parseCSV — CSV del OIJ', () => {
 
       const registros = await parseCSV(csv);
 
-      expect(registros).toHaveLength(2);
+      expect(registros).toHaveLength(3);
       expect(registros[0]).toEqual({
         Delito: 'ASALTO',
         SubDelito: 'ARMA DE FUEGO',
