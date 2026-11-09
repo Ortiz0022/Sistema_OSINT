@@ -89,6 +89,12 @@ jobs:
     env:
       IMAGEN: sistema-osint:${{ github.sha }}
 
+    # Con shell bash explícito, GitHub activa "pipefail": si trivy falla dentro
+    # de "trivy ... | tee archivo", el paso falla (sin esto, manda el código de tee).
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Obtener el código
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
