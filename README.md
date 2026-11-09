@@ -208,8 +208,8 @@ Sistema_OSINT/
 
 ### 5.1 Requisitos Previos
 
-- **Node.js:** Versión 18 o superior (probado en Node.js v20 / v22 / v24).
-- **npm:** Versión 9 o superior.
+- **Node.js:** Versión 22.12 o superior (fijada en `.nvmrc`; con nvm basta `nvm use`).
+- **npm:** Versión 10 o superior.
 
 ### 5.2 Pasos de Instalación y Ejecución
 
@@ -254,9 +254,32 @@ Sistema_OSINT/
    npm run preview
    ```
 
+### 5.3 Comandos de calidad
+
+Estos comandos son la verificación oficial del proyecto. Se usan igual en local, en GitHub Actions y desde el agente de IA. Para que el resultado sea reproducible, instalar siempre con el lockfile:
+
+```bash
+npm ci
+```
+
+| Comando | Qué hace | Resultado esperado |
+| --- | --- | --- |
+| `npm run lint` | Analiza todo el código con oxlint (`.oxlintrc.json`). | Sin errores y como máximo 5 advertencias. |
+| `npm run typecheck` | Verifica tipos de frontend (`src/`), backend (`server/`), scripts ETL en TypeScript (`scripts/`) y archivos de configuración. | Sin errores de TypeScript. |
+| `npm run test` | Ejecuta las pruebas unitarias con Vitest, una sola vez. | Todas las pruebas pasan. |
+| `npm run test:watch` | Ejecuta las pruebas en modo observación durante el desarrollo. | — |
+| `npm run test:coverage` | Ejecuta las pruebas y genera el reporte de cobertura en `coverage/`. | Reporte generado. La cobertura sirve para ver áreas sin probar, no como prueba de calidad. |
+| `npm run build` | Verifica tipos y compila el frontend para producción en `dist/`. | Compilación exitosa. |
+| `npm run check` | Ejecuta lint, pruebas y build en ese orden; se detiene en el primer fallo. | Termina con código de salida 0. |
+
+Notas:
+
+- Las pruebas unitarias están junto al código que prueban (`*.test.ts`) y no acceden a internet ni a servicios externos.
+- El umbral de 5 advertencias de lint corresponde a las advertencias existentes de React (`only-export-components` y `set-state-in-effect`). Una advertencia nueva hace fallar el comando.
+
 ---
 
-### 5.3 Scripts ETL para Regeneración de Datasets (Opcional)
+### 5.4 Scripts ETL para Regeneración de Datasets (Opcional)
 
 El repositorio **ya incluye los datos normalizados en la carpeta `public/`**, por lo que la aplicación funciona inmediatamente tras la instalación sin necesidad de ejecutar los ETLs. Si se desea actualizar o regenerar los datos desde las fuentes oficiales:
 

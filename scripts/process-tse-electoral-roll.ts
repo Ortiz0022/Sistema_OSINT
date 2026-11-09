@@ -2,10 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import unzipper from 'unzipper';
 import * as readline from 'readline';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 interface TerritoryData {
   province: string;

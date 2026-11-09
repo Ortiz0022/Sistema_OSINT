@@ -2,7 +2,7 @@ import { parse } from 'csv-parse';
 
 function decodeHTMLEntities(text: string): string {
   if (!text) return '';
-  return text.replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
+  return text.replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(dec));
 }
 
 export async function parseCSV(csvText: string): Promise<any[]> {
@@ -13,7 +13,8 @@ export async function parseCSV(csvText: string): Promise<any[]> {
       delimiter: ',', 
       trim: true,
       bom: true, 
-      from_line: 2 // Skip the header row
+      from_line: 2, // Skip the header row
+      relax_column_count: true // Las filas incompletas se descartan abajo, no abortan todo el CSV
     }, (err, records: string[][]) => {
       if (err) {
         console.error('Error parseando CSV:', err);
