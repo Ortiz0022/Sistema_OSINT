@@ -47,16 +47,16 @@ const delitoMap: Record<string, string> = {
 
 function buildPayloadParams(params: StatsParams) {
   const oijProvincia = params.provinceId || "0";
-  const oijCanton = (params.provinceId && params.cantonId) 
-    ? `${params.provinceId}${params.cantonId.padStart(2, '0')}` 
+  const oijCanton = (params.provinceId && params.cantonId)
+    ? `${params.provinceId}${params.cantonId.padStart(2, '0')}`
     : "0";
-  const oijDistrito = (params.provinceId && params.cantonId && params.districtId) 
-    ? `${params.provinceId}${params.cantonId.padStart(2, '0')}${params.districtId.padStart(2, '0')}` 
+  const oijDistrito = (params.provinceId && params.cantonId && params.districtId)
+    ? `${params.provinceId}${params.cantonId.padStart(2, '0')}${params.districtId.padStart(2, '0')}`
     : "0";
 
   const currentYear = new Date().getFullYear().toString();
   const startDateInt = parseInt(`${params.year}0101`, 10);
-  
+
   let endDateInt: number;
   if (params.year === currentYear) {
     const today = new Date();
@@ -93,7 +93,7 @@ function getUrlSearchParams(p: ReturnType<typeof buildPayloadParams>) {
 export async function getSecurityStats(params: StatsParams) {
   const cacheKey = JSON.stringify(params);
   const cached = cacheStats.get(cacheKey);
-  
+
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
     return cached.data;
   }
@@ -111,6 +111,15 @@ export async function getSecurityStats(params: StatsParams) {
   }).then(r => r.json());
 
   const [dataCategorias, dataTemporales] = await Promise.all([reqCategorias, reqTemporales]);
+
+
+  // FLU-01-CA07 / HP-03:
+  // Rechazar respuestas inesperadas del OIJ antes de procesar
+  // estadísticas o almacenar información en caché.
+  if (!Array.isArray(dataCategorias) || !Array.isArray(dataTemporales)) {
+    throw new Error('El OIJ devolvió estadísticas con un formato inválido.');
+  }
+
 
   const crimeCountMap = new Map<string, number>();
   let totalIncidents = 0;
@@ -174,7 +183,7 @@ export async function getSecurityStats(params: StatsParams) {
 export async function getSecurityDetails(params: StatsParams) {
   const cacheKey = JSON.stringify(params);
   const cached = cacheDetails.get(cacheKey);
-  
+
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
     return cached.data;
   }
@@ -211,12 +220,12 @@ export async function getSecurityDetails(params: StatsParams) {
   const dataCsv = await parseCSV(csvText);
 
   const tableDataMap = new Map<string, { delito: string, subdelito: string, count: number }>();
-  
+
   if (Array.isArray(dataCsv)) {
     dataCsv.forEach(record => {
       const delito = record.Delito || 'Desconocido';
       const subdelito = record.SubDelito || 'N/A';
-      
+
       if (params.crimeType && params.crimeType !== 'all') {
         if (!delito.toUpperCase().includes(params.crimeType.toUpperCase())) {
           return;
