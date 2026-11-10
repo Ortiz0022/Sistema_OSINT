@@ -6,8 +6,8 @@
 | Responsable | Integrante 1 (Katheryn Méndez) |
 | Revisor | Integrante 2 |
 | Estado del documento | Borrador para revisión |
-| Código analizado | rama `main`, commit `c7b3cab` |
-| Fecha | 2026-11-02 |
+| Código analizado | rama `main`, commit `c7b3cab`; actualizado contra `development`, commit `d23ea2c` |
+| Fecha | 2026-11-02; última actualización 2026-11-10 (ver sección 10) |
 
 Este documento es la base de requisitos que usan el ítem 1.2 (arquitectura y permisos), la tabla de amenazas, el 4.2 (pruebas unitarias), el 4.8 y el `AGENTS.md`. Los IDs (`FLU-xx`, `FLU-xx-CAyy`, `D-xx`) son estables: si un criterio se elimina, su ID no se reutiliza.
 
@@ -82,7 +82,8 @@ Además, el CSV del OIJ que procesa `/details` trae por registro la edad, el sex
 - **OBS-01-8:** No hay limitación de tasa (*rate limiting*) por cliente.
 - **OBS-01-9:** `/stats` no revisa `response.ok` antes de leer el JSON. Si la respuesta del OIJ no es un arreglo, el resultado es `totalIncidents: 0` y no se informa ningún error ([oijService.ts:118](../../server/services/oijService.ts#L118)). `/details` sí revisa `response.ok` ([oijService.ts:206](../../server/services/oijService.ts#L206)).
 - **OBS-01-10:** Ante una excepción, la respuesta es `500` con un mensaje genérico, y el detalle solo se registra con `console.error` en el servidor ([oij.ts:21](../../server/routes/oij.ts#L21), [:40](../../server/routes/oij.ts#L40)). La caché solo guarda resultados exitosos.
-- **OBS-01-11:** El parser del CSV descarta las filas con menos de 12 columnas y conserva solo Delito, SubDelito, Fecha, Provincia, Cantón y Distrito. La respuesta de `/details` contiene únicamente conteos por delito y subdelito ([csvParser.ts:39-48](../../server/utils/csvParser.ts#L39-L48)).
+- **OBS-01-11:** El parser del CSV conserva solo Delito, SubDelito, Fecha, Provincia, Cantón y Distrito. La respuesta de `/details` contiene únicamente conteos por delito y subdelito ([csvParser.ts](../../server/utils/csvParser.ts)).
+  - *Corrección del 2026-11-10:* la primera versión de esta observación decía que las filas con menos de 12 columnas se descartaban. Eso era inexacto en `c7b3cab`: `csv-parse` abortaba **todo** el CSV ante una fila con otra cantidad de columnas, y `/details` respondía 500. La prueba base del 2.2 lo confirmó (hallazgo **HP-13**, Issue #18). Se corrigió con `relax_column_count` en el commit `fac081c` (PR #16, fusionado vía #19). Desde entonces, solo se descarta la fila incompleta.
 - **OBS-01-12:** Si la API falla, el frontend muestra un estado de error ([useSecurity.ts:45](../../src/modules/security/hooks/useSecurity.ts#L45), [SecurityView.tsx:93](../../src/modules/security/components/SecurityView.tsx#L93)).
 
 ### Criterios de aceptación
@@ -249,4 +250,37 @@ Estas preguntas afectan permisos o comportamiento esperado. **No se asumió ning
 | FLU-02 | 2 | 3 | 5 | 10 | 4 | 2 | 3 | 1 |
 | FLU-03 | 2 | 3 | 4 | 9 | 7 | 0 | 1 | 1 |
 
-Los estados "Código hoy" se obtuvieron por lectura estática y deben confirmarse con las pruebas del 4.2. Los criterios en estado "No cumple" o "Parcial" son candidatos a hallazgos para el registro del 7.5.
+Los estados "Código hoy" se obtuvieron por lectura estática. Las pruebas unitarias del ítem 4.2 los confirman, total o parcialmente, para 19 de los 31 criterios. La matriz de trazabilidad está en `docs/requisitos/pruebas-unitarias.md`, que llega con el PR del 4.2. Los criterios en estado "No cumple" o "Parcial" pasaron al registro de hallazgos del 7.5 (sección 9).
+
+---
+
+## 9. Hallazgos registrados en el 7.5
+
+Los criterios que no se cumplen se registraron como Issues en GitHub (registro único del 7.5). La columna "Prueba 4.2" indica si existe una prueba que demuestre el incumplimiento (`it.fails`).
+
+| Hallazgo | Issue | Criterio | Prueba 4.2 |
+|---|---|---|---|
+| HP-01 | #3 | FLU-01-CA05 | Sí (fallo esperado) |
+| HP-02 | #4 | FLU-01-CA06 (timeout) | No (depende de D-04) |
+| HP-03 | #5 | FLU-01-CA07 | Sí (fallo esperado) |
+| HP-04 | #6 | FLU-01-CA08 | Sí (fallo esperado) |
+| HP-05 | #7 | FLU-01-CA09 | No (depende de D-04) |
+| HP-06 | #8 | FLU-01-CA10 | No (depende de D-04) |
+| HP-07 | #9 | FLU-02-CA05 | Sí (fallo esperado) |
+| HP-08 | #10 | FLU-02-CA06 | No (depende de D-01) |
+| HP-09 | #11 | FLU-02-CA07 | No (depende de D-04) |
+| HP-10 | #12 | FLU-02-CA08 | No (depende de D-07) |
+| HP-11 | #13 | FLU-02-CA09 | No (requiere separar la lógica del ETL) |
+| HP-12 | #14 | FLU-03-CA08 | No (requiere un DOM de navegador) |
+| HP-13 | #18 | OBS-01-11 (ningún criterio lo cubre; ver nota) | Sí, prueba base del 2.2. **Corregido** en `fac081c`. |
+
+**Nota sobre HP-13:** ningún criterio de FLU-01 describe qué debe pasar cuando el CSV del OIJ trae filas malformadas. El hallazgo se detectó por una observación (OBS-01-11), no por un criterio. Agregar un criterio nuevo (por ejemplo, FLU-01-CA13) queda como **sugerencia pendiente de validar** por el revisor del 1.1 (Integrante 2). No se agrega en esta actualización.
+
+---
+
+## 10. Registro de cambios
+
+| Fecha | Cambio |
+|---|---|
+| 2026-11-02 | Versión inicial: FLU-01 a FLU-03, 31 criterios y dudas D-01 a D-09 (commits `90d697f` a `06bc46d`). |
+| 2026-11-10 | Se corrige OBS-01-11 (HP-13), se enlazan los hallazgos con sus Issues (sección 9) y se referencia la matriz del 4.2. No cambia ningún criterio ni ninguna duda. |
