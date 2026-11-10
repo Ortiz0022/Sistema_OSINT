@@ -1,0 +1,18 @@
+# Solo entra al contexto lo que la imagen necesita.
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules
+dist
+build
+coverage
+reports
+reportes
+docs
+public
+src
+scripts
+*.pdf
+*.md

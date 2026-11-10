@@ -7,8 +7,14 @@
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
+    "lint": "oxlint --max-warnings=5",
+    "typecheck": "tsc -b",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "build:server": "tsc -p tsconfig.server.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run lint && npm run test && npm run build",
     "preview": "vite preview",
     "etl:tse": "tsx scripts/process-tse-electoral-roll.ts"
   },
@@ -33,11 +39,16 @@
     "@types/react-dom": "^19.2.4",
     "@types/unzipper": "^0.10.11",
     "@vitejs/plugin-react": "^6.1.0",
+    "@vitest/coverage-v8": "^5.1.0",
     "concurrently": "^10.0.5",
     "oxlint": "^1.79.0",
     "tsx": "^4.23.13",
     "typescript": "~6.0.2",
     "unzipper": "^0.12.5",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=22.12"
   }
 }
