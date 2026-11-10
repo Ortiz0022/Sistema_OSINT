@@ -13,13 +13,24 @@ COPY tsconfig.server.json tsconfig.server.build.json ./
 COPY server ./server
 RUN npm run build:server
 
-# --- Etapa 2: imagen final, solo dependencias de producción ---
+# --- Etapa 2: instalar solo las dependencias de producción ---
+FROM node:${NODE_VERSION} AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
+
+# --- Etapa 3: imagen final ---
 FROM node:${NODE_VERSION} AS runtime
 ENV NODE_ENV=production \
     PORT=3001
+# La app no usa npm, npx, corepack ni yarn en ejecución. Se eliminan porque traen
+# dependencias propias con vulnerabilidades (detectadas por Trivy) y no aportan nada.
+RUN rm -rf /usr/local/lib/node_modules \
+           /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+           /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-*
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+COPY package.json ./
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/build/server ./server
 
 # Usuario sin privilegios (el usuario "node" ya existe en la imagen base).
