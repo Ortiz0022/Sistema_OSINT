@@ -1,4 +1,3 @@
-
 ---
 name: Registro de hallazgo DSS
 about: Registrar hallazgos de calidad y seguridad del Sistema_OSINT
@@ -23,7 +22,7 @@ assignees: ""
 ## Evaluación
 - Severidad (crítica / alta / media / baja):
 - Justificación de severidad:
-- Estado: Pendiente de investigación
+- Estado (Pendiente de investigación / Confirmado / Falso positivo / Corregido / Aceptado como excepción):
 - Amenaza relacionada:
 
 ## Tratamiento y seguimiento
