@@ -17,7 +17,11 @@ npm ci
 npm run test
 ```
 
-Resultado esperado: **75 pruebas, 67 aprobadas y 8 marcadas como fallo esperado**, código de salida 0. Las pruebas no usan internet ni datos reales: la red se simula y el ETL del TSE se ejecuta sobre un ZIP ficticio en una carpeta temporal.
+Resultado esperado, con código de salida 0:
+- Solo con este PR sobre `development`: **74 pruebas, 67 aprobadas y 7 marcadas como fallo esperado**.
+- Cuando también esté fusionado el PR #29 (ítem 4.8): **75 pruebas, 68 aprobadas y 7 con fallo esperado**.
+
+ Las pruebas no usan internet ni datos reales: la red se simula y el ETL del TSE se ejecuta sobre un ZIP ficticio en una carpeta temporal.
 
 ## 2. Convención: fallo esperado (`it.fails`)
 
@@ -30,12 +34,17 @@ El 1.1 define qué **debe** cumplir el sistema. Algunos criterios todavía no se
 
 Cada prueba con `it.fails` se ejecutó también sin el `.fails` para confirmar que falla por la razón del hallazgo y no por un error de la prueba.
 
+**Coordinación con el ítem 4.8 (Integrante 4).** Para no duplicar trabajo, se acordó lo siguiente:
+- HP-03 (FLU-01-CA07) lo cubren la prueba y la corrección del 4.8 en el PR #29 (`server/services/oijService.test.ts`). El 4.2 no lo prueba.
+- Si el 4.8 corrige el código de otro hallazgo que ya tiene una prueba `it.fails` aquí (HP-01, HP-04 o HP-07), no hace falta escribir una prueba nueva: basta con quitar el `.fails` de la prueba existente.
+
 ## 3. Archivos
 
 | Archivo | Flujo | Qué prueba |
 |---|---|---|
 | `server/utils/csvParser.test.ts` | FLU-01 | Prueba base del 2.2 (Integrante 3): parser del CSV del OIJ. |
-| `server/services/oijService.test.ts` | FLU-01 | Servicio del proxy OIJ: cálculos, caché, reintentos, errores del OIJ y exposición de datos de víctimas. |
+| `server/services/oijService.criterios.test.ts` | FLU-01 | Servicio del proxy OIJ: cálculos, caché, reintentos, errores del OIJ y exposición de datos de víctimas. |
+| `server/services/oijService.test.ts` | FLU-01 | **Ítem 4.8 (Integrante 4, PR #29), no es parte del 4.2:** respuesta inesperada del OIJ (HP-03). |
 | `server/routes/oij.test.ts` | FLU-01 | Contrato HTTP de `/api/security/*`: códigos 400 y 500 y mensajes sin detalles internos. |
 | `scripts/process-tse-electoral-roll.test.ts` | FLU-02 | ETL del padrón: agregación, ausencia de datos personales, errores de entrada y conservación del dataset anterior. |
 | `src/services/locationService.test.ts` | FLU-03 | Servicio territorial (DTA): orden, caché, timeout, estructura inválida y codificación de IDs. |
@@ -56,7 +65,7 @@ Cada prueba con `it.fails` se ejecutó también sin el `.fails` para confirmar q
 | FLU-01-CA04 | Error | 3 | Pasa | Responde 400 sin `year` en ambos endpoints (límite: `year` vacío). |
 | FLU-01-CA05 | Error | 2 | Fallo esperado | HP-01 (#3). Solo se prueba el formato no numérico; el rango depende de D-03. |
 | FLU-01-CA06 | Error | 5 | Pasa (parcial) | Reintentos, caché sin fallos y respuesta 500 genérica. **El timeout de salida (HP-02, #4) no se prueba**: no existe un tiempo acordado (D-04). |
-| FLU-01-CA07 | Error | 1 | Fallo esperado | HP-03 (#5): ante una respuesta inesperada del OIJ devuelve 0 incidentes. |
+| FLU-01-CA07 | Error | 0 (4.8: 1) | Cubierto por el 4.8 | HP-03 (#5). La prueba y la corrección están en el PR #29 de la Integrante 4. Una vez fusionado, el criterio se cumple. |
 | FLU-01-CA08 | Uso indebido | 4 | Fallo esperado | HP-04 (#6): IDs no numéricos, parámetros repetidos, inyección en el payload y tipo de delito fuera de lista. |
 | FLU-01-CA09 | Uso indebido | 0 | Sin prueba | HP-05 (#7). El servicio no expone el tamaño de la caché; el límite depende de D-04. |
 | FLU-01-CA10 | Uso indebido | 0 | Sin prueba | HP-06 (#8). El límite de solicitudes depende de D-04. |
@@ -89,21 +98,22 @@ Cada prueba con `it.fails` se ejecutó también sin el `.fails` para confirmar q
 | FLU-03-CA05 | Error | 1 | Pasa | Lista vacía cuando no hay coincidencias. |
 | FLU-03-CA06 | Uso indebido | 5 | Pasa (parcial) | El filtro trata como texto literal el HTML, los scripts, el texto tipo SQL y los caracteres de expresiones regulares, y soporta una búsqueda de 100 000 caracteres. **No se prueba** que la pantalla no ejecute el texto: eso depende del escape de React y requiere un DOM de navegador. |
 | FLU-03-CA07 | Uso indebido | 5 | Pasa (parcial) | Rechaza estructuras inválidas, descarta valores no textuales y el servicio entrega un nombre con HTML sin modificarlo. **No se prueba** que la pantalla lo muestre como texto (mismo motivo que CA06). |
-
-**Control adicional sin criterio propio:** 1 prueba (`OBS-03-2`) verifica que los IDs enviados a la DTA se codifican en la URL y no permiten recorrer otras rutas de la API. Protege la petición saliente; ningún criterio del 1.1 la describe.
 | FLU-03-CA08 | Uso indebido | 0 | Sin prueba | HP-12 (#14). El tooltip de Leaflet necesita un DOM de navegador, que no está configurado en las pruebas. |
 | FLU-03-CA09 | Uso indebido | 0 | Sin prueba | Bloqueado por D-01. |
+
+**Control adicional sin criterio propio:** 1 prueba (`OBS-03-2`) verifica que los IDs enviados a la DTA se codifican en la URL y no permiten recorrer otras rutas de la API. Protege la petición saliente; ningún criterio del 1.1 la describe.
 
 ## 5. Resumen
 
 | | FLU-01 | FLU-02 | FLU-03 | Total |
 |---|---|---|---|---|
-| Criterios con al menos una prueba | 9 de 12 | 3 de 10 | 7 de 9 | 19 de 31 |
+| Criterios con al menos una prueba del 4.2 | 8 de 12 | 3 de 10 | 7 de 9 | 18 de 31 |
+| Más los cubiertos por el 4.8 (#29) | +1 (CA07) | 0 | 0 | 19 de 31 |
 | De ellos, cubiertos solo en parte | 1 (CA06) | 0 | 2 (CA06, CA07) | 3 |
-| Pruebas nuevas del 4.2 | 24 | 8 | 33 | 65 |
-| De ellas, con fallo esperado | 7 | 1 | 0 | 8 |
+| Pruebas nuevas del 4.2 | 23 | 8 | 33 | 64 |
+| De ellas, con fallo esperado | 6 | 1 | 0 | 7 |
 
-Más las 10 pruebas base del 2.2, el total es de 75 pruebas. En FLU-03 hay 32 pruebas trazadas a criterios y 1 de control adicional (`OBS-03-2`).
+Más las 10 pruebas base del 2.2, el total es de 74 pruebas; con la prueba del 4.8 (#29), de 75. En FLU-03 hay 32 pruebas trazadas a criterios y 1 de control adicional (`OBS-03-2`).
 
 ## 6. Limitaciones
 

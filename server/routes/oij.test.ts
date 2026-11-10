@@ -7,7 +7,7 @@ import type { AddressInfo } from 'node:net';
 // El servicio OIJ se reemplaza por un doble de prueba: aquí se prueba solo el
 // contrato HTTP (validación, códigos de estado y mensajes de error).
 // Criterios: docs/requisitos/flujos-criticos.md. Convención de `it.fails`: ver
-// server/services/oijService.test.ts.
+// server/services/oijService.criterios.test.ts.
 
 vi.mock('../services/oijService.js', () => ({
   getSecurityStats: vi.fn(),

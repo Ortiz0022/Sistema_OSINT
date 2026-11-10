@@ -10,7 +10,7 @@ import { crc32 } from 'node:zlib';
 // prueba: no se usan datos reales del padrón. Cada prueba trabaja en una
 // carpeta temporal, así que nunca toca public/data del repositorio.
 // Criterios: docs/requisitos/flujos-criticos.md. Convención de `it.fails`: ver
-// server/services/oijService.test.ts.
+// server/services/oijService.criterios.test.ts.
 
 const RAIZ = resolve(import.meta.dirname, '..');
 const SCRIPT = join(RAIZ, 'scripts', 'process-tse-electoral-roll.ts');

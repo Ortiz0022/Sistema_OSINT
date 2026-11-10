@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vite
 
 // Ítem 4.2: pruebas unitarias de FLU-01 (consulta de estadísticas de seguridad
 // a través del proxy OIJ). Los criterios están en docs/requisitos/flujos-criticos.md.
+// El nombre `.criterios.test.ts` lo distingue de oijService.test.ts, que es la
+// prueba del ítem 4.8 (Integrante 4).
 //
 // La red se simula con un `fetch` falso: las pruebas no salen a internet.
 // Cada prueba recarga el módulo para empezar con la caché vacía.
@@ -194,13 +196,9 @@ describe('FLU-01 — servicio de estadísticas OIJ', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
-    it.fails('FLU-01-CA07 [HP-03, Issue #5]: si el OIJ responde 200 con un formato inesperado, falla en vez de mostrar 0 incidentes', async () => {
-      fetchMock = vi.fn<FetchFn>(async () => json({ mensaje: 'mantenimiento' }));
-      vi.stubGlobal('fetch', fetchMock);
-      const { getSecurityStats } = await cargarServicio();
-
-      await expect(getSecurityStats({ year: '2024' })).rejects.toThrow();
-    });
+    // FLU-01-CA07 (HP-03, Issue #5) no se prueba aquí: lo cubren la prueba y la
+    // corrección del ítem 4.8 (Integrante 4, PR #29) en
+    // server/services/oijService.test.ts. Se acordó así para no duplicar trabajo.
   });
 
   describe('uso indebido', () => {
