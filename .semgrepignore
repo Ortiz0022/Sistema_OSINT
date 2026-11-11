@@ -1,0 +1,7 @@
+# Solo excluye resultados y dependencias generadas; conserva pruebas y código ETL.
+node_modules/
+dist/
+build/
+coverage/
+reports/
+reportes/

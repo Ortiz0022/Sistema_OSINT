@@ -1,0 +1,29 @@
+rules:
+  - id: osint-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: No ejecutar texto como código. Revisar el origen y sustituir eval.
+    pattern: eval(...)
+  - id: osint-shell-exec
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Revisar ejecución de comandos con shell; preferir argumentos separados sin shell.
+    pattern-either:
+      - pattern: exec(...)
+      - pattern: execSync(...)
+  - id: osint-tls-disabled
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: No desactivar la validación TLS.
+    pattern: '{..., rejectUnauthorized: false, ...}'
+  - id: osint-html-tooltip
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Revisar HTML dinámico en tooltip de Leaflet (AM-03); usar texto para datos externos.
+    pattern: $L.bindTooltip($CONTENT, ...)
+  - id: osint-open-cors
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: CORS sin orígenes explícitos; contrastar con la decisión D-02, no equivale a autorización.
+    pattern: cors()
+
