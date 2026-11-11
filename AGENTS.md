@@ -10,7 +10,7 @@ Antes de modificar un flujo crítico, lee:
 - `docs/arquitectura/mapa-arquitectura-1.2.png`: componentes, servicios externos y límites de confianza.
 - El código y las pruebas relacionados con el flujo que vas a modificar.
 
-Comprueba que estas referencias estén disponibles en la rama de trabajo. Si no puedes leer un archivo o falta información, indícalo; no supongas su contenido. Distingue comportamiento observado, propuestas y reglas aprobadas. Si los documentos discrepan, señala la diferencia antes de cambiar la parte afectada.
+Comprueba que estas referencias estén disponibles en la rama de trabajo. Si no puedes leer un archivo o falta información, indícalo; no supongas su contenido. Distingue comportamiento observado, propuestas, aceptación de una sola integrante y reglas ratificadas por el equipo. Consulta el estado de aprobación del informe 1.2; no conviertas propuestas como el plazo de borrado de 48 horas en reglas aprobadas. Si los documentos discrepan, señala la diferencia antes de cambiar la parte afectada.
 
 ## Ubicación del código
 
