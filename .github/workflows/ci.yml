@@ -79,3 +79,281 @@ jobs:
           path: reports/
           retention-days: 30
           if-no-files-found: warn
+  # Ítem 3.3 — Construir y analizar la imagen candidata.
+  # Solo corre si el job de calidad pasó.
+  imagen:
+    name: Imagen (Docker, Trivy, SBOM)
+    needs: calidad
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      IMAGEN: sistema-osint:${{ github.sha }}
+
+    # Con shell bash explícito, GitHub activa "pipefail": si trivy falla dentro
+    # de "trivy ... | tee archivo", el paso falla (sin esto, manda el código de tee).
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Construir la imagen candidata
+        run: |
+          docker build \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --tag "$IMAGEN" .
+          mkdir -p reportes
+          docker image inspect --format '{{.Id}}' "$IMAGEN" > reportes/image-id.txt
+          echo "${GITHUB_SHA}" > reportes/commit.txt
+          echo "Imagen: $IMAGEN"
+          echo "ID de la imagen: $(cat reportes/image-id.txt)"
+
+      # Instala Trivy y genera el SBOM en formato CycloneDX.
+      - name: Generar SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGEN }}
+          format: cyclonedx
+          output: reportes/sbom.cdx.json
+          exit-code: '0'
+
+      - name: Reporte completo de vulnerabilidades (JSON)
+        run: trivy image --format json --output reportes/trivy-vulnerabilidades.json "$IMAGEN"
+
+      - name: Analizar configuración del Dockerfile
+        run: trivy config --severity HIGH,CRITICAL --exit-code 1 . | tee reportes/trivy-config.txt
+
+      # Bloquea si hay vulnerabilidades altas o críticas que ya tienen corrección disponible.
+      - name: Bloquear vulnerabilidades HIGH/CRITICAL corregibles
+        if: ${{ !cancelled() }}
+        run: trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$IMAGEN" | tee reportes/trivy-bloqueo.txt
+
+      - name: Resumen
+        if: always()
+        run: |
+          {
+            echo "## Imagen candidata"
+            echo ""
+            echo "| Dato | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Imagen | \`${IMAGEN}\` |"
+            echo "| ID de la imagen | \`$(cat reportes/image-id.txt 2>/dev/null || echo 'no generado')\` |"
+            echo "| Estado del job | ${JOB_STATUS} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          JOB_STATUS: ${{ job.status }}
+
+      - name: Guardar reportes de la imagen
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: reportes-imagen-${{ github.sha }}
+          path: reportes/
+          retention-days: 30
+          if-no-files-found: warn
+
+      # Ítem 5.1 — Conservar la imagen analizada para publicarla sin reconstruirla.
+      # Solo en el commit fusionado en development y si todos los pasos anteriores pasaron.
+      - name: Exportar la imagen aprobada
+        if: ${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/development' }}
+        run: |
+          mkdir -p imagen
+          docker save --output imagen/imagen.tar "$IMAGEN"
+
+      - name: Guardar la imagen aprobada
+        if: ${{ success() && github.event_name == 'push' && github.ref == 'refs/heads/development' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: imagen-candidata-${{ github.sha }}
+          path: imagen/imagen.tar
+          retention-days: 7
+          if-no-files-found: error
+
+  # Ítem 5.1 — Registro de la versión candidata y publicación en Docker Hub.
+  # Corre solo en el commit fusionado en development, después de que Calidad e
+  # Imagen pasaron. Publica la MISMA imagen que analizó Trivy (no la reconstruye),
+  # con tag igual al SHA del commit, y registra su digest.
+  version:
+    name: Versión (registro y Docker Hub)
+    needs: [calidad, imagen]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/development' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read        # listar los artefactos y las ejecuciones del commit
+      pull-requests: read  # identificar el PR que originó el commit
+    outputs:
+      imagen: ${{ steps.publicar.outputs.imagen }}
+      digest: ${{ steps.publicar.outputs.digest }}
+    env:
+      IMAGEN_LOCAL: sistema-osint:${{ github.sha }}
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Obtener el código (con historial, para listar los cambios)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Descargar la imagen aprobada
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: imagen-candidata-${{ github.sha }}
+          path: imagen/
+
+      - name: Descargar los reportes de la imagen
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: reportes-imagen-${{ github.sha }}
+          path: reportes-imagen/
+
+      # Si la imagen no es exactamente la que analizó Trivy, no se publica.
+      - name: Cargar la imagen y comprobar que es la analizada
+        run: |
+          docker load --input imagen/imagen.tar
+          ESPERADO="$(cat reportes-imagen/image-id.txt)"
+          OBTENIDO="$(docker image inspect --format '{{.Id}}' "$IMAGEN_LOCAL")"
+          REVISION="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$IMAGEN_LOCAL")"
+          echo "ID analizado por Trivy:  $ESPERADO"
+          echo "ID de la imagen cargada: $OBTENIDO"
+          echo "Commit en la etiqueta:   $REVISION"
+          if [ "$ESPERADO" != "$OBTENIDO" ]; then
+            echo "::error::La imagen cargada no es la que analizó Trivy. No se publica."
+            exit 1
+          fi
+          if [ "$REVISION" != "$GITHUB_SHA" ]; then
+            echo "::error::La etiqueta de la imagen no corresponde al commit ${GITHUB_SHA}. No se publica."
+            exit 1
+          fi
+
+      # Sin credenciales el job falla: una versión sin publicar queda incompleta, no aprobada.
+      - name: Publicar en Docker Hub con tag por SHA
+        id: publicar
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
+            echo "::error::Faltan la variable DOCKERHUB_USERNAME o el secreto DOCKERHUB_TOKEN. La versión queda incompleta."
+            exit 1
+          fi
+          REPO="docker.io/${DOCKERHUB_USERNAME}/sistema-osint"
+          echo "$DOCKERHUB_TOKEN" | docker login docker.io --username "$DOCKERHUB_USERNAME" --password-stdin
+          docker tag "$IMAGEN_LOCAL" "${REPO}:${GITHUB_SHA}"
+          docker tag "$IMAGEN_LOCAL" "${REPO}:development"
+          docker push "${REPO}:${GITHUB_SHA}"
+          docker push "${REPO}:development"
+          DIGEST="$(docker image inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$IMAGEN_LOCAL" | grep '/sistema-osint@' | head -n 1 | cut -d@ -f2)"
+          if [ -z "$DIGEST" ]; then
+            docker logout docker.io
+            echo "::error::Docker Hub no devolvió el digest de la imagen publicada."
+            exit 1
+          fi
+          # Comprueba en el registro que el digest existe.
+          docker buildx imagetools inspect "${REPO}@${DIGEST}"
+          docker logout docker.io
+          echo "imagen=${REPO}" >> "$GITHUB_OUTPUT"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Publicada: ${REPO}:${GITHUB_SHA}"
+          echo "Digest:    ${DIGEST}"
+
+      - name: Generar el registro de la versión
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGEN: ${{ steps.publicar.outputs.imagen }}
+          DIGEST: ${{ steps.publicar.outputs.digest }}
+        run: |
+          R="$GITHUB_REPOSITORY"
+          RUN_URL="${GITHUB_SERVER_URL}/${R}/actions/runs/${GITHUB_RUN_ID}"
+          ID_IMAGEN="$(cat reportes-imagen/image-id.txt)"
+
+          # Enlace directo a un artefacto de esta ejecución (o a la ejecución si no se encuentra).
+          artefacto() {
+            local url
+            url="$(gh api "repos/${R}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+              --jq ".artifacts[] | select(.name == \"$1\") | \"${RUN_URL}/artifacts/\(.id)\"" | head -n 1)"
+            echo "${url:-${RUN_URL}}"
+          }
+          URL_PRUEBAS="$(artefacto "reporte-pruebas-${GITHUB_SHA}")"
+          URL_IMAGEN="$(artefacto "reportes-imagen-${GITHUB_SHA}")"
+
+          # PR que originó el commit fusionado.
+          PR="$(gh api "repos/${R}/commits/${GITHUB_SHA}/pulls" --jq '.[] | "#\(.number) \(.title)"' | head -n 1)"
+
+          # Cambios desde la última ejecución exitosa de CI en development.
+          ANTERIOR="$(gh api "repos/${R}/actions/workflows/ci.yml/runs?branch=development&event=push&status=success&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // empty')"
+          if [ -n "$ANTERIOR" ] && git merge-base --is-ancestor "$ANTERIOR" "$GITHUB_SHA"; then
+            CAMBIOS="$(git log --first-parent --format='- `%h` %s' "${ANTERIOR}..${GITHUB_SHA}")"
+            DESDE="desde \`${ANTERIOR:0:7}\`, la última ejecución aprobada de CI"
+          else
+            CAMBIOS="$(git log --first-parent --format='- `%h` %s' -n 10 "$GITHUB_SHA")"
+            DESDE="últimos 10 commits; no hay una versión anterior registrada"
+          fi
+
+          # Otras comprobaciones del mismo commit (por ejemplo, el análisis de seguridad del 3.2).
+          OTRAS="$(gh api "repos/${R}/actions/runs?head_sha=${GITHUB_SHA}&per_page=50" \
+            --jq ".workflow_runs[] | select(.id != ${GITHUB_RUN_ID}) | \"| \(.name) | \(.status) / \(.conclusion // \"sin resultado\") | [ver](\(.html_url)) |\"")"
+
+          mkdir -p registro
+          {
+            echo "## Registro de la versión candidata"
+            echo ""
+            echo "| Dato | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Rama | development |"
+            echo "| PR | ${PR:-sin PR asociado} |"
+            echo "| Imagen publicada | \`${IMAGEN}:${GITHUB_SHA}\` |"
+            echo "| Digest | \`${DIGEST}\` |"
+            echo "| Referencia para desplegar | \`${IMAGEN}@${DIGEST}\` |"
+            echo "| ID de la imagen analizada | \`${ID_IMAGEN}\` |"
+            echo "| Ejecución de CI | [${GITHUB_RUN_ID}](${RUN_URL}) |"
+            echo ""
+            echo "### Reportes"
+            echo ""
+            echo "| Comprobación | Resultado | Enlace |"
+            echo "| --- | --- | --- |"
+            echo "| Lint, tipos, pruebas y build | aprobado | [reporte-pruebas](${URL_PRUEBAS}) |"
+            echo "| Trivy (imagen y Dockerfile) y SBOM CycloneDX | aprobado | [reportes-imagen](${URL_IMAGEN}) |"
+            if [ -n "$OTRAS" ]; then
+              echo "$OTRAS"
+            else
+              echo "| Análisis de código, secretos y dependencias (3.2) | no ejecutado: incompleto | — |"
+            fi
+            echo ""
+            echo "### Cambios incluidos (${DESDE})"
+            echo ""
+            echo "$CAMBIOS"
+          } > registro/registro-version.md
+
+          jq -n \
+            --arg commit "$GITHUB_SHA" --arg pr "$PR" \
+            --arg imagen "$IMAGEN" --arg digest "$DIGEST" --arg id "$ID_IMAGEN" \
+            --arg ejecucion "$RUN_URL" --arg pruebas "$URL_PRUEBAS" --arg reportes "$URL_IMAGEN" \
+            '{commit: $commit, rama: "development", pr: $pr,
+              imagen: $imagen, tag: $commit, digest: $digest,
+              referencia: ($imagen + "@" + $digest), id_imagen_analizada: $id,
+              ejecucion: $ejecucion, reporte_pruebas: $pruebas, reportes_imagen_sbom: $reportes}' \
+            > registro/registro-version.json
+
+          cat registro/registro-version.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar el registro de la versión
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: registro-version-${{ github.sha }}
+          path: registro/
+          retention-days: 90
+          if-no-files-found: error
