@@ -11,6 +11,11 @@ app.use(express.json());
 // Rutas
 app.use('/api/security', oijRouter);
 
+// Ítem 6.1 — Comprobación de salud del backend
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor interno corriendo en el puerto ${PORT}`);
 });

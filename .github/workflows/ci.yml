@@ -357,3 +357,182 @@ jobs:
           path: registro/
           retention-days: 90
           if-no-files-found: error
+
+  despliegue:
+    name: Despliegue (Render)
+    needs: version
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/development' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Solicitar despliegue por digest
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          IMAGEN: ${{ needs.version.outputs.imagen }}
+          DIGEST: ${{ needs.version.outputs.digest }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -n "$RENDER_DEPLOY_HOOK"
+          test -n "$IMAGEN"
+          [[ "$DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+
+          REFERENCIA="${IMAGEN}@${DIGEST}"
+
+          HTTP_CODE=$(curl --silent --show-error \
+            --get \
+            --data-urlencode "imgURL=${REFERENCIA}" \
+            --output respuesta-render.json \
+            --write-out "%{http_code}" \
+            "$RENDER_DEPLOY_HOOK")
+
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "::error::Render no inició inmediatamente el despliegue (HTTP $HTTP_CODE)."
+            exit 1
+          fi
+
+          DEPLOY_ID="$(jq -r '.deploy.id // empty' respuesta-render.json)"
+
+          if [[ ! "$DEPLOY_ID" =~ ^dep-[a-zA-Z0-9]+$ ]]; then
+            echo "::error::Render no devolvió un ID de despliegue válido."
+            exit 1
+          fi
+
+          echo "Despliegue solicitado: $DEPLOY_ID"
+
+          # Consultar el despliegue específico mediante la API de Render.
+          test -n "$RENDER_API_KEY"
+          test -n "$RENDER_SERVICE_ID"
+
+          URL_DEPLOY="https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys/${DEPLOY_ID}"
+
+          DESPLIEGUE_VALIDADO=false
+
+          for intento in {1..40}; do
+            curl --fail --silent --show-error \
+              --retry 3 \
+              --max-time 20 \
+              --header "Authorization: Bearer ${RENDER_API_KEY}" \
+              --header "Accept: application/json" \
+              "$URL_DEPLOY" \
+              --output estado-render.json
+
+            ESTADO="$(jq -r '.status // empty' estado-render.json)"
+            IMAGEN_RENDER="$(jq -r '.image.ref // empty' estado-render.json)"
+            SHA_RENDER="$(jq -r '.image.sha // empty' estado-render.json)"
+
+            echo "Intento ${intento}: estado de Render = ${ESTADO}"
+
+            if [[ "$ESTADO" == "live" ]]; then
+              if [[ "$IMAGEN_RENDER" != "$REFERENCIA" && "$SHA_RENDER" != "$DIGEST" ]]; then
+                echo "::error::El despliegue no corresponde a la imagen aprobada."
+                exit 1
+              fi
+
+              DESPLIEGUE_VALIDADO=true
+              echo "Render publicó correctamente la imagen aprobada."
+              break
+            fi
+
+            case "$ESTADO" in
+              build_failed|update_failed|pre_deploy_failed|canceled|deactivated)
+                echo "::error::El despliegue terminó con estado ${ESTADO}."
+                exit 1
+                ;;
+            esac
+
+            sleep 10
+          done
+
+          if [[ "$DESPLIEGUE_VALIDADO" != "true" ]]; then
+            echo "::error::Render no confirmó el despliegue dentro del tiempo de verificación."
+            exit 1
+          fi
+
+          # Verificar que el backend responda después de solicitar el despliegue.
+          echo "Comprobando disponibilidad del backend en Render..."
+
+          API_HEALTH="https://sistema-osint-api-p2o2.onrender.com/health"
+          DISPONIBLE=false
+
+          for intento in {1..25}; do
+            if curl --fail --silent --show-error --max-time 20 \
+              "$API_HEALTH" | jq -e '.status == "ok"' > /dev/null 2>&1; then
+              DISPONIBLE=true
+              echo "Backend disponible. Verificación exitosa."
+              break
+            fi
+
+            echo "Intento $intento: backend aún no disponible."
+            sleep 12
+          done
+
+          if [[ "$DISPONIBLE" != "true" ]]; then
+            echo "::error::El backend no respondió correctamente en /health."
+            exit 1
+          fi
+
+
+          {
+            echo "## Despliegue 6.1 — Render"
+            echo ""
+            echo "| Dato | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Imagen aprobada | \`${REFERENCIA}\` |"
+            echo "| Respuesta de Render | HTTP ${HTTP_CODE} |"
+            echo "| Estado | Solicitud de despliegue aceptada |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  frontend:
+    name: Despliegue (Netlify)
+    needs: [calidad, imagen, version, despliegue]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/development' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Obtener código aprobado
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Preparar Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Compilar frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publicar en Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ vars.NETLIFY_SITE_ID }}
+        run: |
+          set -euo pipefail
+
+          test -n "$NETLIFY_AUTH_TOKEN"
+          test -n "$NETLIFY_SITE_ID"
+
+          npx --yes netlify-cli@27.17.0 deploy \
+            --prod \
+            --dir=dist \
+            --message="Deploy 6.1 - commit ${GITHUB_SHA}"
+
+          {
+            echo "## Despliegue 6.1 — Netlify"
+            echo ""
+            echo "| Dato | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Sitio | \`${NETLIFY_SITE_ID}\` |"
+            echo "| Estado | Publicación solicitada |"
+          } >> "$GITHUB_STEP_SUMMARY"
