@@ -1,0 +1,38 @@
+[
+  {
+    "archivo": "server/index.ts",
+    "sha256": "5b99cd847c00cd2316a7331feadff6e704567de3f1e89402a595f859f1234265"
+  },
+  {
+    "archivo": "server/routes/oij.ts",
+    "sha256": "8c503188a4be605105e0364c51f51e3f62e1fca7a6cb4298ffccefeacc169d1c"
+  },
+  {
+    "archivo": "server/services/oijService.ts",
+    "sha256": "019a63cdc72b20d9a85ca622bd327671d6d7aebdcba0be1c0c6d5b6c1ec507bd"
+  },
+  {
+    "archivo": "vite.config.ts",
+    "sha256": "e082b03e126ca61aad028fa5e0dfa087f15e3d834d647a10691ec75e9fa3e90b"
+  },
+  {
+    "archivo": "src/services/locationService.ts",
+    "sha256": "dd9966f056c6469ae290b075ef77f006484ff285e219e1f7f69ee3c6a89916b1"
+  },
+  {
+    "archivo": "src/modules/security/services/securityService.ts",
+    "sha256": "6042326ebd25e57ac22244edfae039b7f553c41ab0b359432221851f149fb684"
+  },
+  {
+    "archivo": "scripts/process-tse-electoral-roll.ts",
+    "sha256": "9bf6b6e8df8dab0c67354fd985e056f0c19627be499aecfa8e1beff4b6b69a56"
+  },
+  {
+    "archivo": "src/modules/publicData/etl/fetchMeicPymes.mjs",
+    "sha256": "beba02d210724bec07cbfb29bc2e9b50312487aa4e8c4281e64a116d27648f26"
+  },
+  {
+    "archivo": "src/modules/procurement/etl/fetchSicop.mjs",
+    "sha256": "7ab9ea2d0df1055ef41dc99c09a06719f2b0ef0be5dba22583f5a996e54cc525"
+  }
+]
