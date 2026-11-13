@@ -1,0 +1,52 @@
+name: Seguridad
+on:
+  pull_request:
+    branches: [development, main]
+  push:
+    branches: [development, main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: seguridad-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  seguridad:
+    name: Seguridad (Semgrep, Gitleaks, OSV)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Obtener código e historial completo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Instalar Semgrep CE 1.185.0
+        run: python3 -m pip install --user semgrep==1.185.0
+      - name: Instalar Gitleaks 8.30.1 y OSV-Scanner 2.7.1
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/seguridad-bin"
+          cd "$RUNNER_TEMP/seguridad-bin"
+          curl --fail --location --retry 3 -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz' | sha256sum --check
+          tar -xzf gitleaks.tar.gz gitleaks
+          curl --fail --location --retry 3 -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.7.1/osv-scanner_linux_amd64
+          echo 'fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8  osv-scanner' | sha256sum --check
+          chmod +x gitleaks osv-scanner
+          echo "$RUNNER_TEMP/seguridad-bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Ejecutar los tres análisis y aplicar bloqueo
+        if: ${{ !cancelled() }}
+        run: python3 scripts/security/run_security.py
+      - name: Guardar reportes y códigos de salida
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reportes-seguridad-${{ github.sha }}
+          path: reportes/seguridad/
+          retention-days: 30
+          if-no-files-found: error

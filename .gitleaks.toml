@@ -1,0 +1,3 @@
+title = "Sistema OSINT: reglas estándar, sin excepciones iniciales"
+[extend]
+useDefault = true
